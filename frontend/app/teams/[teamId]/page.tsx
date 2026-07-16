@@ -5,6 +5,7 @@ import { useTeamPlayers } from '@/lib/hooks';
 import { PlayerCard, getTacticalData } from '@/components/sports/PlayerCard';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
 interface PageProps {
@@ -32,19 +33,28 @@ export default function TeamPlayersPage({ params }: PageProps) {
     <div className="min-h-screen bg-[#080d1a] text-slate-100 py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         
-        {/* Enlace de Regreso MARCA */}
+        {/* Enlace de Regreso MARCA con Animación Burbuja */}
         <div className="mb-8">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#111827] hover:bg-[#1f2937] border border-slate-800 text-amber-400 font-bold text-sm tracking-wide transition-all duration-200 shadow-sm hover:border-amber-500/50"
-          >
-            <span>&larr;</span>
-            <span>Volver al Inicio y Ligas</span>
+          <Link href="/">
+            <motion.div
+              whileHover={{ scale: 1.04, x: -3 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ type: 'spring', stiffness: 450, damping: 25 }}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#111827] hover:bg-[#1f2937] border border-slate-800 text-amber-400 font-bold text-sm tracking-wide transition-colors duration-200 shadow-md hover:border-amber-500/50 cursor-pointer select-none"
+            >
+              <span>&larr;</span>
+              <span>Volver al Inicio y Ligas</span>
+            </motion.div>
           </Link>
         </div>
 
         {/* Hero Header de Plantilla y Guía Táctica */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#101828] via-[#0f172a] to-[#090e17] border border-amber-500/30 p-6 sm:p-10 mb-8 shadow-2xl">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+          className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#101828] via-[#0f172a] to-[#090e17] border border-amber-500/30 p-6 sm:p-10 mb-8 shadow-2xl"
+        >
           <div className="absolute -top-32 -right-32 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
           
           <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
@@ -57,80 +67,54 @@ export default function TeamPlayersPage({ params }: PageProps) {
                 Plantilla y Jugadores
               </h1>
               <p className="text-slate-400 text-sm sm:text-base font-medium max-w-3xl">
-                Haz clic en cualquier ficha de atleta para abrir su <strong className="text-amber-400">Modal de Demarcación y Funciones Tácticas</strong> en el terreno de juego (según la guía técnica de posiciones: Portero, Zaga, Medular y Ataque).
+                Haz clic en cualquier ficha de atleta para abrir su <strong className="text-amber-400">Modal de Demarcación y Funciones Tácticas</strong> en forma de burbuja (sin alterar la cuadrícula de jugadores).
               </p>
             </div>
 
             {players && players.length > 0 && (
-              <div className="bg-[#080d1a]/90 border border-slate-800/90 rounded-2xl p-4 sm:p-5 text-center shrink-0 min-w-[140px] shadow-lg">
+              <motion.div 
+                whileHover={{ scale: 1.05 }}
+                className="bg-[#080d1a]/90 border border-slate-800/90 rounded-2xl p-4 sm:p-5 text-center shrink-0 min-w-[140px] shadow-lg"
+              >
                 <div className="text-3xl sm:text-4xl font-black text-amber-400">
                   {players.length}
                 </div>
                 <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">
                   Atletas Inscritos
                 </div>
-              </div>
+              </motion.div>
             )}
           </div>
-        </div>
+        </motion.div>
 
-        {/* Selector de Filtros por Líneas / Zonas Tácticas */}
+        {/* Selector de Filtros por Líneas / Zonas Tácticas con Efecto Burbuja */}
         {players && players.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2.5 p-2 bg-[#111827] border border-slate-800 rounded-2xl mb-8">
-            <button
-              onClick={() => setActiveZone('all')}
-              className={`px-4 py-2.5 rounded-xl text-sm font-black transition-all duration-200 ${
-                activeZone === 'all'
-                  ? 'bg-amber-500 text-slate-950 shadow-md'
-                  : 'bg-transparent text-slate-400 hover:text-white hover:bg-slate-800/60'
-              }`}
-            >
-              🌐 Todos ({players.length})
-            </button>
-            <button
-              onClick={() => setActiveZone('por')}
-              className={`px-4 py-2.5 rounded-xl text-sm font-black transition-all duration-200 flex items-center gap-2 ${
-                activeZone === 'por'
-                  ? 'bg-emerald-500 text-slate-950 shadow-md'
-                  : 'bg-transparent text-slate-400 hover:text-emerald-300 hover:bg-slate-800/60'
-              }`}
-            >
-              <span>🛡️</span>
-              <span>Porteros (POR #1)</span>
-            </button>
-            <button
-              onClick={() => setActiveZone('def')}
-              className={`px-4 py-2.5 rounded-xl text-sm font-black transition-all duration-200 flex items-center gap-2 ${
-                activeZone === 'def'
-                  ? 'bg-sky-500 text-slate-950 shadow-md'
-                  : 'bg-transparent text-slate-400 hover:text-sky-300 hover:bg-slate-800/60'
-              }`}
-            >
-              <span>🧱</span>
-              <span>Defensas (DFC, LD, LI)</span>
-            </button>
-            <button
-              onClick={() => setActiveZone('med')}
-              className={`px-4 py-2.5 rounded-xl text-sm font-black transition-all duration-200 flex items-center gap-2 ${
-                activeZone === 'med'
-                  ? 'bg-purple-500 text-slate-950 shadow-md'
-                  : 'bg-transparent text-slate-400 hover:text-purple-300 hover:bg-slate-800/60'
-              }`}
-            >
-              <span>🎯</span>
-              <span>Mediocampistas (MCD, MC, MCO)</span>
-            </button>
-            <button
-              onClick={() => setActiveZone('del')}
-              className={`px-4 py-2.5 rounded-xl text-sm font-black transition-all duration-200 flex items-center gap-2 ${
-                activeZone === 'del'
-                  ? 'bg-amber-500 text-slate-950 shadow-md'
-                  : 'bg-transparent text-slate-400 hover:text-amber-300 hover:bg-slate-800/60'
-              }`}
-            >
-              <span>⚡</span>
-              <span>Delanteros (DC, ED, EI)</span>
-            </button>
+          <div className="flex flex-wrap items-center gap-2 p-2 bg-[#111827]/90 border border-slate-800/80 rounded-2xl mb-8 shadow-inner">
+            {[
+              { id: 'all', label: `🌐 Todos (${players.length})`, activeColor: 'bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-black shadow-lg shadow-amber-500/25' },
+              { id: 'por', label: '🛡️ Porteros (POR #1)', activeColor: 'bg-gradient-to-r from-emerald-500 to-emerald-400 text-slate-950 font-black shadow-lg shadow-emerald-500/25' },
+              { id: 'def', label: '🧱 Defensas (DFC, LD, LI)', activeColor: 'bg-gradient-to-r from-sky-500 to-sky-400 text-slate-950 font-black shadow-lg shadow-sky-500/25' },
+              { id: 'med', label: '🎯 Mediocampistas (MCD, MC, MCO)', activeColor: 'bg-gradient-to-r from-purple-500 to-purple-400 text-white font-black shadow-lg shadow-purple-500/25' },
+              { id: 'del', label: '⚡ Delanteros (DC, ED, EI)', activeColor: 'bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-black shadow-lg shadow-amber-500/25' }
+            ].map((tab) => {
+              const isActive = activeZone === tab.id;
+              return (
+                <motion.button
+                  key={tab.id}
+                  onClick={() => setActiveZone(tab.id)}
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.94 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 28 }}
+                  className={`px-4 py-2.5 rounded-xl text-sm transition-colors duration-200 cursor-pointer select-none ${
+                    isActive
+                      ? tab.activeColor
+                      : 'bg-transparent text-slate-400 font-bold hover:text-white hover:bg-slate-800/60'
+                  }`}
+                >
+                  {tab.label}
+                </motion.button>
+              );
+            })}
           </div>
         )}
 
@@ -171,13 +155,27 @@ export default function TeamPlayersPage({ params }: PageProps) {
           </div>
         )}
 
-        {/* Grilla de Atletas MARCA */}
+        {/* Grilla de Atletas MARCA con Animación Burbuja de Salida/Entrada */}
         {filteredPlayers.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredPlayers.map((player, index) => (
-              <PlayerCard key={player.id} player={player} delay={index * 0.04} />
-            ))}
-          </div>
+          <motion.div 
+            layout
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          >
+            <AnimatePresence mode="popLayout">
+              {filteredPlayers.map((player, index) => (
+                <motion.div
+                  key={player.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.8, y: 20 }}
+                  transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+                >
+                  <PlayerCard player={player} delay={index * 0.03} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         )}
 
       </div>

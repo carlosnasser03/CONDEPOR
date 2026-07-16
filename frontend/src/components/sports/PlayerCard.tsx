@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Player } from '@/types';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -151,7 +152,6 @@ const TACTICAL_INFO: Record<string, {
   }
 };
 
-// Resolver la información táctica a partir del string de posición o código
 export const getTacticalData = (pos: string) => {
   const p = (pos || '').toLowerCase().trim();
   if (p === 'por' || p.includes('portero') || p.includes('guardameta')) return TACTICAL_INFO.por;
@@ -165,7 +165,6 @@ export const getTacticalData = (pos: string) => {
   if (p === 'ei' || p.includes('extremo izquierdo')) return TACTICAL_INFO.ei;
   if (p === 'dc' || p.includes('delantero') || p.includes('ariete')) return TACTICAL_INFO.dc;
   
-  // Fallback por defecto en caso de posición genérica
   return {
     code: pos?.toUpperCase() || 'JUG',
     name: pos || 'Jugador de Campo',
@@ -184,6 +183,11 @@ export const getTacticalData = (pos: string) => {
 export const PlayerCard: React.FC<PlayerCardProps> = ({ player, delay = 0 }) => {
   const [imgError, setImgError] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const tactical = getTacticalData(player.position);
 
@@ -212,12 +216,15 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, delay = 0 }) => 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay, duration: 0.35 }}
+        transition={{ delay, type: 'spring', stiffness: 350, damping: 25 }}
         className="h-full"
       >
-        <div 
+        <motion.div 
           onClick={() => setIsModalOpen(true)}
-          className="h-full bg-[#0f172a]/95 hover:bg-[#162038] border border-slate-800/85 hover:border-amber-500/60 rounded-2xl p-5 transition-all duration-300 shadow-lg hover:shadow-2xl hover:-translate-y-1.5 flex flex-col justify-between group relative overflow-hidden cursor-pointer"
+          whileHover={{ scale: 1.03, y: -4 }}
+          whileTap={{ scale: 0.96 }}
+          transition={{ type: 'spring', stiffness: 450, damping: 26 }}
+          className="h-full bg-[#0f172a]/95 hover:bg-[#162038] border border-slate-800/85 hover:border-amber-500/60 rounded-2xl p-5 transition-colors duration-300 shadow-lg hover:shadow-2xl flex flex-col justify-between group relative overflow-hidden cursor-pointer select-none"
         >
           {/* Resplandor sutil MARCA en hover */}
           <div className="absolute -top-24 -right-24 w-48 h-48 bg-amber-500/15 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
@@ -266,8 +273,8 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, delay = 0 }) => 
               <p className="text-xs font-bold text-slate-400 mt-1 line-clamp-1">
                 {tactical.name}
               </p>
-              <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-800/80 border border-slate-700/60 text-[10px] font-semibold text-amber-300/90">
-                <span>📖 Ver Rol y Funciones Tácticas</span>
+              <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-800/80 border border-slate-700/60 text-[10px] font-semibold text-amber-300/90 group-hover:bg-amber-500/20 group-hover:border-amber-500/40 transition-colors">
+                <span>📖 Ver Demarcación y Roles</span>
               </div>
             </div>
           </div>
@@ -293,113 +300,121 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, delay = 0 }) => 
             </div>
           </div>
 
-        </div>
+        </motion.div>
       </motion.div>
 
-      {/* MODAL DE DEMARCACIÓN Y ROLES TÁCTICOS (Al hacer clic en el jugador) */}
-      <AnimatePresence>
-        {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Overlay oscuro con desenfoque */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsModalOpen(false)}
-              className="absolute inset-0 bg-[#040711]/85 backdrop-blur-md"
-            />
+      {/* MODAL DE BURBUJA FLOTANTE EN PORTAL (Detachado de la grilla para no mover ni desbordar elementos) */}
+      {mounted && createPortal(
+        <AnimatePresence>
+          {isModalOpen && (
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-hidden">
+              {/* Overlay oscuro con desenfoque */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                onClick={() => setIsModalOpen(false)}
+                className="absolute inset-0 bg-[#040711]/85 backdrop-blur-md cursor-pointer"
+              />
 
-            {/* Contenido del Modal Táctico */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ duration: 0.25 }}
-              className="relative z-10 w-full max-w-2xl bg-gradient-to-br from-[#101828] via-[#0f172a] to-[#080d1a] border border-amber-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto text-left"
-            >
-              {/* Resplandor superior */}
-              <div className="absolute -top-32 -right-32 w-64 h-64 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
+              {/* Contenido del Modal tipo Burbuja Flotante */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.65, y: 40 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.65, y: 40 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 26 }}
+                className="relative z-10 w-full max-w-2xl bg-gradient-to-br from-[#101828] via-[#0f172a] to-[#080d1a] border border-amber-500/50 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto text-left"
+              >
+                {/* Resplandor superior */}
+                <div className="absolute -top-32 -right-32 w-64 h-64 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
 
-              {/* Encabezado del Modal */}
-              <div className="flex items-start justify-between gap-4 border-b border-slate-800 pb-5 mb-5">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-2xl font-black text-slate-950 shadow-lg border-2 border-slate-900 shrink-0">
-                    #{player.jerseyNumber || '0'}
-                  </div>
-                  <div>
-                    <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-black uppercase tracking-wider mb-1">
-                      <span>Demarcación Oficial CONDEPOR</span>
+                {/* Encabezado del Modal */}
+                <div className="flex items-start justify-between gap-4 border-b border-slate-800 pb-5 mb-5">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-2xl font-black text-slate-950 shadow-lg border-2 border-slate-900 shrink-0">
+                      #{player.jerseyNumber || '0'}
                     </div>
-                    <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                      {player.name}
-                    </h2>
-                    <p className="text-slate-400 text-sm font-semibold mt-0.5">
-                      {tactical.name} ({tactical.code}) &bull; Dorsal Típico: {tactical.commonNumbers}
-                    </p>
+                    <div>
+                      <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-black uppercase tracking-wider mb-1">
+                        <span>Demarcación Oficial CONDEPOR</span>
+                      </div>
+                      <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                        {player.name}
+                      </h2>
+                      <p className="text-slate-400 text-sm font-semibold mt-0.5">
+                        {tactical.name} ({tactical.code}) &bull; Dorsal Típico: {tactical.commonNumbers}
+                      </p>
+                    </div>
+                  </div>
+
+                  <motion.button
+                    whileHover={{ scale: 1.1, rotate: 90 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setIsModalOpen(false)}
+                    className="w-10 h-10 rounded-full bg-slate-800/80 hover:bg-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition-colors text-xl font-bold shrink-0 cursor-pointer"
+                    aria-label="Cerrar modal"
+                  >
+                    &times;
+                  </motion.button>
+                </div>
+
+                {/* Zona en el Campo y Descripción */}
+                <div className={`p-4 rounded-2xl bg-gradient-to-r border mb-6 ${tactical.zoneColor}`}>
+                  <div className="text-xs font-black uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                    <span>📍 {tactical.zone}</span>
+                  </div>
+                  <p className="text-sm font-medium leading-relaxed opacity-95">
+                    {tactical.description}
+                  </p>
+                </div>
+
+                {/* Funciones Clave y Roles Tácticos en el Partido */}
+                <div className="mb-6">
+                  <h4 className="text-sm font-black text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <span>⚽ Funciones y Roles en el Terreno de Juego</span>
+                  </h4>
+                  <ul className="space-y-2.5">
+                    {tactical.functions.map((func, idx) => (
+                      <li key={idx} className="flex items-start gap-3 bg-[#080d1a]/80 border border-slate-800/80 rounded-xl p-3 text-sm text-slate-200">
+                        <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 font-black text-xs flex items-center justify-center shrink-0 mt-0.5">
+                          ✓
+                        </span>
+                        <span className="leading-snug">{func}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Estadísticas en Temporada */}
+                <div className="grid grid-cols-2 gap-4 border-t border-slate-800 pt-5">
+                  <div className="bg-[#080d1a] border border-slate-800 rounded-2xl p-4 text-center">
+                    <div className="text-3xl font-black text-amber-400">{player.seasonGoals || 0}</div>
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">Goles en Temporada</div>
+                  </div>
+                  <div className="bg-[#080d1a] border border-slate-800 rounded-2xl p-4 text-center">
+                    <div className="text-3xl font-black text-sky-400">{player.seasonPoints !== undefined ? player.seasonPoints.toFixed(0) : 0}</div>
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">Puntos de Rendimiento</div>
                   </div>
                 </div>
 
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="w-10 h-10 rounded-full bg-slate-800/80 hover:bg-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition-colors text-xl font-bold shrink-0"
-                  aria-label="Cerrar modal"
-                >
-                  &times;
-                </button>
-              </div>
-
-              {/* Zona en el Campo y Descripción */}
-              <div className={`p-4 rounded-2xl bg-gradient-to-r border mb-6 ${tactical.zoneColor}`}>
-                <div className="text-xs font-black uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                  <span>📍 {tactical.zone}</span>
+                {/* Botón de Cierre inferior */}
+                <div className="mt-6 text-right">
+                  <motion.button
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.94 }}
+                    onClick={() => setIsModalOpen(false)}
+                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 font-black text-sm tracking-wide transition-all duration-200 shadow-lg shadow-amber-500/30 cursor-pointer"
+                  >
+                    Entendido &bull; Cerrar Ficha Táctica
+                  </motion.button>
                 </div>
-                <p className="text-sm font-medium leading-relaxed opacity-95">
-                  {tactical.description}
-                </p>
-              </div>
-
-              {/* Funciones Clave y Roles Tácticos en el Partido */}
-              <div className="mb-6">
-                <h4 className="text-sm font-black text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                  <span>⚽ Funciones y Roles en el Terreno de Juego</span>
-                </h4>
-                <ul className="space-y-2.5">
-                  {tactical.functions.map((func, idx) => (
-                    <li key={idx} className="flex items-start gap-3 bg-[#080d1a]/80 border border-slate-800/80 rounded-xl p-3 text-sm text-slate-200">
-                      <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 font-black text-xs flex items-center justify-center shrink-0 mt-0.5">
-                        ✓
-                      </span>
-                      <span className="leading-snug">{func}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Estadísticas en Temporada */}
-              <div className="grid grid-cols-2 gap-4 border-t border-slate-800 pt-5">
-                <div className="bg-[#080d1a] border border-slate-800 rounded-2xl p-4 text-center">
-                  <div className="text-3xl font-black text-amber-400">{player.seasonGoals || 0}</div>
-                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">Goles en Temporada</div>
-                </div>
-                <div className="bg-[#080d1a] border border-slate-800 rounded-2xl p-4 text-center">
-                  <div className="text-3xl font-black text-sky-400">{player.seasonPoints !== undefined ? player.seasonPoints.toFixed(0) : 0}</div>
-                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">Puntos de Rendimiento</div>
-                </div>
-              </div>
-
-              {/* Botón de Cierre inferior */}
-              <div className="mt-6 text-right">
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-sm tracking-wide transition-all duration-200 shadow-lg hover:shadow-amber-500/30"
-                >
-                  Entendido &bull; Cerrar Ficha Táctica
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </>
   );
 };
