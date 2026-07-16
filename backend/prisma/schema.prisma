@@ -1,0 +1,175 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ============================================
+// CATEGORÍAS - Liga, Torneo, División
+// ============================================
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  color       String    // Ej: "#2563eb"
+  description String? 
+  
+  // Relaciones - TODO esto se borra al eliminar categoría
+  teams       Team[]
+  matches     Match[]
+  players     Player[]
+  sponsors    Sponsor[]
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// ============================================
+// EQUIPOS - Cada equipo en una categoría
+// Independencia: Si se elimina, cascade a jugadores y partidos
+// ============================================
+model Team {
+  id          String    @id @default(cuid())
+  name        String
+  crestUrl    String?   // URL de logo/escudo
+  categoryId  String
+  
+  // Relaciones
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  players     Player[]
+  homeMatches Match[]   @relation("homeTeam")
+  awayMatches Match[]   @relation("awayTeam")
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Restricciones de unicidad
+  @@unique([name, categoryId]) // No se puede repetir nombre en misma categoría
+  @@index([categoryId])
+}
+
+// ============================================
+// JUGADORES - Niños en cada equipo
+// Independencia: Si se elimina, NO se pierden stats históricas
+// Las stats (PlayerMatchStat) quedan huérfanas pero existen
+// ============================================
+model Player {
+  id              String            @id @default(cuid())
+  name            String
+  photoUrl        String?           // URL foto del niño (IMPORTANTE)
+  position        String            // "Delantero", "Medio", "Defensa", "Portero"
+  jerseyNumber    Int               // Número de dorsal
+  teamId          String
+  categoryId      String
+  
+  // Relaciones
+  team            Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  category        Category          @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  stats           PlayerMatchStat[] // Stats de CADA partido
+  
+  // Stats acumulativas de la temporada (se actualizan automáticamente)
+  seasonGoals     Int               @default(0)
+  seasonPoints    Float             @default(0)
+  seasonMatches   Int               @default(0)
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  
+  // Índices para queries frecuentes
+  @@index([teamId])
+  @@index([categoryId])
+}
+
+// ============================================
+// PARTIDOS - Encuentros entre equipos
+// Independencia: Si se elimina, cascade a PlayerMatchStat
+// Las stats se borran automáticamente
+// ============================================
+model Match {
+  id            String            @id @default(cuid())
+  categoryId    String
+  homeTeamId    String
+  awayTeamId    String
+  
+  date          DateTime          // Fecha y hora del partido
+  venue         String            // Nombre de la cancha
+  status        String            // "scheduled" | "in_progress" | "finished"
+  
+  // Resultados - null hasta que se registre
+  homeGoals     Int?              
+  awayGoals     Int?
+  
+  // Relaciones
+  category      Category          @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  homeTeam      Team              @relation("homeTeam", fields: [homeTeamId], references: [id], onDelete: Cascade)
+  awayTeam      Team              @relation("awayTeam", fields: [awayTeamId], references: [id], onDelete: Cascade)
+  playerStats   PlayerMatchStat[] // Stats de jugadores en este partido
+  
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  
+  // Índices para queries frecuentes
+  @@index([categoryId])
+  @@index([homeTeamId])
+  @@index([awayTeamId])
+  @@index([status])
+  @@index([date])
+}
+
+// ============================================
+// ESTADÍSTICAS DE JUGADOR POR PARTIDO
+// Cada fila = desempeño de 1 jugador en 1 partido
+// Independencia: Si jugador se elimina, esto queda huérfano
+// Si partido se elimina, esto se borra (onDelete: Cascade)
+// ============================================
+model PlayerMatchStat {
+  id              String   @id @default(cuid())
+  playerId        String
+  matchId         String
+  
+  // Stats del partido
+  goals           Int      @default(0)
+  assists         Int      @default(0)
+  minutesPlayed   Int      @default(0)  // 0-90 minutos
+  cleanSheet      Boolean  @default(false)  // Para defensores/porteros
+  
+  // Puntos calculados AUTOMÁTICAMENTE por ScoringEngine
+  points          Float    @default(0)
+  
+  // Relaciones
+  player          Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  match           Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime @default(now())
+  
+  // Restricciones
+  @@unique([playerId, matchId]) // 1 jugador solo puede tener 1 stat por partido
+  @@index([matchId])
+  @@index([playerId])
+}
+
+// ============================================
+// SPONSORS - Patrocinadores de categorías
+// Independencia: Si se elimina categoría, sponsor se marca como NULL
+// ============================================
+model Sponsor {
+  id         String    @id @default(cuid())
+  name       String
+  imageUrl   String
+  linkUrl    String?
+  placement  String    // "header" | "sidebar" | "footer"
+  categoryId String?   // Nullable - puede no estar asociado a categoría
+  active     Boolean   @default(true)
+  
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  
+  createdAt  DateTime  @default(now())
+  
+  @@index([categoryId])
+  @@index([active])
+}
