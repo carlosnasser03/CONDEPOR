@@ -51,21 +51,21 @@ function getRandomName(idx: number, teamIdx: number): string {
 }
 
 const ROSTER_POSITIONS = [
-  { position: "Portero", jerseyNumber: 1 },
-  { position: "Portero", jerseyNumber: 12 },
-  { position: "Defensa", jerseyNumber: 2 },
-  { position: "Defensa", jerseyNumber: 3 },
-  { position: "Defensa", jerseyNumber: 4 },
-  { position: "Defensa", jerseyNumber: 5 },
-  { position: "Defensa", jerseyNumber: 13 },
-  { position: "Medio", jerseyNumber: 6 },
-  { position: "Medio", jerseyNumber: 8 },
-  { position: "Medio", jerseyNumber: 10 },
-  { position: "Medio", jerseyNumber: 14 },
-  { position: "Medio", jerseyNumber: 15 },
-  { position: "Delantero", jerseyNumber: 7 },
-  { position: "Delantero", jerseyNumber: 9 },
-  { position: "Delantero", jerseyNumber: 11 }
+  { position: "POR", jerseyNumber: 1 },
+  { position: "POR", jerseyNumber: 12 },
+  { position: "LD", jerseyNumber: 2 },
+  { position: "LI", jerseyNumber: 3 },
+  { position: "DFC", jerseyNumber: 4 },
+  { position: "DFC", jerseyNumber: 5 },
+  { position: "DFC", jerseyNumber: 13 },
+  { position: "MCD", jerseyNumber: 6 },
+  { position: "MC", jerseyNumber: 8 },
+  { position: "MCO", jerseyNumber: 10 },
+  { position: "MC", jerseyNumber: 14 },
+  { position: "MCD", jerseyNumber: 15 },
+  { position: "ED", jerseyNumber: 7 },
+  { position: "DC", jerseyNumber: 9 },
+  { position: "EI", jerseyNumber: 11 }
 ];
 
 async function main() {
@@ -214,8 +214,9 @@ async function main() {
 
       // Crear Stats de Jugadores en los partidos finalizados
       // Match 1 (Olimpia 3 - 1 Motagua)
-      const olimpiaStrikers = playersInCat.filter(p => p.teamId === teamsInCat[0].id && p.position === "Delantero");
-      const motaguaStrikers = playersInCat.filter(p => p.teamId === teamsInCat[1].id && p.position === "Delantero");
+      const isStriker = (p: any) => p.position === "DC" || p.position === "Delantero" || p.position === "ED" || p.position === "EI";
+      const olimpiaStrikers = playersInCat.filter(p => p.teamId === teamsInCat[0].id && isStriker(p));
+      const motaguaStrikers = playersInCat.filter(p => p.teamId === teamsInCat[1].id && isStriker(p));
       
       if (olimpiaStrikers.length > 0 && motaguaStrikers.length > 0) {
         await prisma.playerMatchStat.create({
@@ -269,8 +270,8 @@ async function main() {
       }
 
       // Match 2 (Real España 2 - 2 Marathón)
-      const rceStrikers = playersInCat.filter(p => p.teamId === teamsInCat[2].id && p.position === "Delantero");
-      const marStrikers = playersInCat.filter(p => p.teamId === teamsInCat[3].id && p.position === "Delantero");
+      const rceStrikers = playersInCat.filter(p => p.teamId === teamsInCat[2].id && isStriker(p));
+      const marStrikers = playersInCat.filter(p => p.teamId === teamsInCat[3].id && isStriker(p));
       if (rceStrikers.length > 0 && marStrikers.length > 0) {
         await prisma.playerMatchStat.create({
           data: {

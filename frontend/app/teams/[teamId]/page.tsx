@@ -18,14 +18,15 @@ export default function TeamPlayersPage({ params }: PageProps) {
   const { data: players, loading, error } = useTeamPlayers(params.teamId);
   const [activeZone, setActiveZone] = useState<string>('all');
 
-  // Filtrar jugadores por zona táctica seleccionada
+  // Filtrar jugadores por zona táctica seleccionada (admite códigos DFC/MC/DC y palabras genéricas)
   const filteredPlayers = players ? players.filter(player => {
     if (activeZone === 'all') return true;
     const tactical = getTacticalData(player.position);
-    if (activeZone === 'por') return tactical.code === 'POR';
-    if (activeZone === 'def') return ['DFC', 'LD', 'LI'].includes(tactical.code);
-    if (activeZone === 'med') return ['MCD', 'MC', 'MCO'].includes(tactical.code);
-    if (activeZone === 'del') return ['DC', 'ED', 'EI'].includes(tactical.code);
+    const pStr = (player.position || '').toLowerCase();
+    if (activeZone === 'por') return tactical.code === 'POR' || pStr.includes('por');
+    if (activeZone === 'def') return ['DFC', 'LD', 'LI'].includes(tactical.code) || pStr.includes('def');
+    if (activeZone === 'med') return ['MCD', 'MC', 'MCO'].includes(tactical.code) || pStr.includes('med') || pStr === 'mc';
+    if (activeZone === 'del') return ['DC', 'ED', 'EI'].includes(tactical.code) || pStr.includes('del') || pStr.includes('ext');
     return true;
   }) : [];
 

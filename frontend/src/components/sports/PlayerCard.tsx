@@ -156,14 +156,18 @@ export const getTacticalData = (pos: string) => {
   const p = (pos || '').toLowerCase().trim();
   if (p === 'por' || p.includes('portero') || p.includes('guardameta')) return TACTICAL_INFO.por;
   if (p === 'dfc' || p.includes('central')) return TACTICAL_INFO.dfc;
-  if (p === 'ld' || p.includes('derecho') && p.includes('lateral')) return TACTICAL_INFO.ld;
-  if (p === 'li' || p.includes('izquierdo') && p.includes('lateral')) return TACTICAL_INFO.li;
-  if (p === 'mcd' || p.includes('defensivo') && p.includes('medio') || p.includes('contención')) return TACTICAL_INFO.mcd;
+  if (p === 'ld' || (p.includes('derecho') && p.includes('lateral'))) return TACTICAL_INFO.ld;
+  if (p === 'li' || (p.includes('izquierdo') && p.includes('lateral'))) return TACTICAL_INFO.li;
+  if (p === 'mcd' || (p.includes('defensivo') && p.includes('medio')) || p.includes('contención')) return TACTICAL_INFO.mcd;
   if (p === 'mco' || p.includes('ofensivo') || p.includes('mediapunta') || p.includes('enganche')) return TACTICAL_INFO.mco;
-  if (p === 'mc' || p.includes('medio') || p.includes('mixto') || p.includes('todocampista')) return TACTICAL_INFO.mc;
   if (p === 'ed' || p.includes('extremo derecho')) return TACTICAL_INFO.ed;
   if (p === 'ei' || p.includes('extremo izquierdo')) return TACTICAL_INFO.ei;
-  if (p === 'dc' || p.includes('delantero') || p.includes('ariete')) return TACTICAL_INFO.dc;
+  if (p === 'dc' || p.includes('delantero centro') || p.includes('ariete')) return TACTICAL_INFO.dc;
+  
+  // Si en la base de datos dice genéricamente "Defensa", "Medio" o "Delantero", asignarlo a la línea principal
+  if (p === 'defensa' || p.includes('def')) return TACTICAL_INFO.dfc;
+  if (p === 'medio' || p === 'mc' || p.includes('med') || p.includes('mixto') || p.includes('todocampista')) return TACTICAL_INFO.mc;
+  if (p === 'delantero' || p.includes('del') || p.includes('ext')) return TACTICAL_INFO.dc;
   
   return {
     code: pos?.toUpperCase() || 'JUG',
