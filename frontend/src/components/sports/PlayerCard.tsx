@@ -244,20 +244,21 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, delay = 0 }) => 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center p-4 relative">
-                  <span className="absolute text-7xl font-black text-slate-800/35 select-none tracking-tighter">
+                <div className="w-full h-full flex flex-col items-center justify-center p-4 relative bg-gradient-to-b from-[#162038]/60 to-[#0b111e]">
+                  {/* Número de Dorsal gigante de fondo */}
+                  <span className="absolute text-8xl font-black text-slate-800/30 select-none tracking-tighter">
                     #{player.jerseyNumber || '0'}
                   </span>
                   
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-lg border-2 border-slate-900 z-10 mb-2 group-hover:scale-110 transition-transform duration-300">
-                    <span className="text-xl font-black text-slate-950">
-                      {getInitials(player.name) || `#${player.jerseyNumber || '0'}`}
+                  {/* Ícono atlético limpio e indicación clara del dorsal sin iniciales repetidas */}
+                  <div className="relative z-10 flex flex-col items-center justify-center">
+                    <div className="w-14 h-14 rounded-2xl bg-[#1e293b]/90 border border-slate-700/80 flex items-center justify-center shadow-md mb-2 group-hover:scale-110 group-hover:border-amber-500/50 transition-all duration-300">
+                      <span className="text-3xl select-none">👕</span>
+                    </div>
+                    <span className="text-xs font-black text-amber-400 tracking-widest uppercase bg-slate-900/80 px-3 py-1 rounded-full border border-slate-800 shadow-sm">
+                      Dorsal #{player.jerseyNumber || '0'}
                     </span>
                   </div>
-
-                  <span className="text-xs font-bold text-slate-400 z-10 tracking-wider uppercase">
-                    Dorsal #{player.jerseyNumber || '0'}
-                  </span>
                 </div>
               )}
 
