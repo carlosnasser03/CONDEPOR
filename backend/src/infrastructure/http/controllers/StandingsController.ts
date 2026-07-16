@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { StandingsService } from "@application/StandingsService";
 import { isBrowserRequest } from "../views/layout";
 import { renderStandingsView } from "../views/standingsView";
+import { CategoryIdParamSchema } from "@domain/validation/schemas";
 
 export class StandingsController {
   constructor(private standingsService: StandingsService) {}
@@ -11,10 +12,9 @@ export class StandingsController {
    */
   async getStandingsByCategory(req: Request, res: Response): Promise<void> {
     try {
-      const { categoryId } = req.params;
+      const { categoryId } = CategoryIdParamSchema.parse(req.params);
 
-      const standings =
-        await this.standingsService.getByCategoryId(categoryId);
+      const standings = await this.standingsService.getByCategoryId(categoryId);
 
       if (isBrowserRequest(req)) {
         res.send(await renderStandingsView(standings, categoryId));
@@ -33,9 +33,7 @@ export class StandingsController {
         res.send(await renderStandingsView([], req.params.categoryId || ""));
         return;
       }
-      res.status(400).json({
-        error: error.message,
-      });
+      throw error;
     }
   }
 }

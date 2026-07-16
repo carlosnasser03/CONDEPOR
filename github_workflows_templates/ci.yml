@@ -1,0 +1,97 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  backend-ci:
+    name: Backend CI (Build, Lint, Test & Type Check)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgrespassword
+          POSTGRES_DB: condepor_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Generate Prisma Client
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgrespassword@localhost:5432/condepor_test?schema=public
+        run: npx prisma generate
+
+      - name: Run linter and type check
+        working-directory: backend
+        run: npm run lint
+
+      - name: Build backend
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgrespassword@localhost:5432/condepor_test?schema=public
+        run: npm run build
+
+      - name: Run unit & integration tests
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:postgrespassword@localhost:5432/condepor_test?schema=public
+          PORT: 4000
+          NODE_ENV: test
+        run: npx vitest run
+
+  frontend-ci:
+    name: Frontend CI (Build, Lint & Type Check)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run linter
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Run TypeScript type check
+        working-directory: frontend
+        run: npx tsc --noEmit
+
+      - name: Build Next.js frontend
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_URL: https://api.condepor.com/api
+        run: npm run build

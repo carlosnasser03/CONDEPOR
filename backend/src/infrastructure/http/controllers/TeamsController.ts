@@ -3,6 +3,13 @@ import { isBrowserRequest } from "../views/layout";
 import { renderTeamsView } from "../views/teamsView";
 import { renderTeamDetailView } from "../views/teamDetailView";
 import { getPrismaClient } from "@infrastructure/persistence/prisma/PrismaClient";
+import {
+  CreateTeamSchema,
+  UpdateTeamSchema,
+  AddTeamPlayerSchema,
+  IdParamSchema,
+} from "@domain/validation/schemas";
+import { NotFoundError } from "@infrastructure/errors/AppError";
 
 export class TeamsController {
   private prisma = getPrismaClient();
@@ -15,7 +22,13 @@ export class TeamsController {
       const { categoryId } = req.query;
       const categories = await this.prisma.category.findMany({ orderBy: { name: "asc" } });
       const queryCatId = typeof categoryId === "string" ? categoryId : null;
-      const selectedCat = categories.find((c: any) => c.id === queryCatId) || categories[2] || categories[0] || { id: "cmrmhh5zq008ur60awmghreez", name: "Fútbol Infantil U-12" };
+      const defaultCatId = process.env.DEFAULT_CATEGORY_ID;
+      const selectedCat =
+        categories.find((c: any) => c.id === queryCatId) ||
+        categories[0] ||
+        (defaultCatId
+          ? { id: defaultCatId, name: "Categoría Predeterminada" }
+          : { id: "default", name: "Fútbol Infantil" });
       const activeCatId = selectedCat.id;
       const activeCatName = selectedCat.name;
 
@@ -23,10 +36,10 @@ export class TeamsController {
         where: { categoryId: activeCatId },
         include: {
           _count: {
-            select: { players: true }
-          }
+            select: { players: true },
+          },
         },
-        orderBy: { name: "asc" }
+        orderBy: { name: "asc" },
       });
 
       if (isBrowserRequest(req)) {
@@ -39,14 +52,15 @@ export class TeamsController {
         categoryId: activeCatId,
         categoryName: activeCatName,
         count: teams.length,
-        teams
+        teams,
       });
     } catch (error: any) {
       if (isBrowserRequest(req)) {
-        res.send(await renderTeamsView([], "cmrmhh5zq008ur60awmghreez", "Fútbol Infantil U-12"));
+        const fallbackId = process.env.DEFAULT_CATEGORY_ID || "default";
+        res.send(await renderTeamsView([], fallbackId, "Fútbol Infantil"));
         return;
       }
-      res.status(400).json({ error: error.message });
+      throw error;
     }
   }
 
@@ -54,135 +68,127 @@ export class TeamsController {
    * POST /api/teams
    */
   async createTeam(req: Request, res: Response): Promise<void> {
-    try {
-      const { categoryId, name, crestUrl } = req.body;
-      if (!categoryId || !name) {
-        res.status(400).json({ error: "Missing categoryId or name" });
-        return;
-      }
+    const data = CreateTeamSchema.parse(req.body);
 
-      const team = await this.prisma.team.create({
-        data: {
-          categoryId,
-          name,
-          crestUrl: crestUrl || null
-        }
-      });
+    const team = await this.prisma.team.create({
+      data: {
+        categoryId: data.categoryId,
+        name: data.name,
+        crestUrl: data.crestUrl || null,
+      },
+    });
 
-      res.status(201).json({ success: true, team });
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
-    }
+    res.status(201).json({ success: true, team });
   }
 
   /**
    * GET /api/teams/:id
    */
   async getTeamDetail(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const team = await this.prisma.team.findUnique({
-        where: { id },
-        include: {
-          category: true,
-          players: {
-            orderBy: { jerseyNumber: "asc" }
-          }
-        }
-      });
+    const { id } = IdParamSchema.parse(req.params);
+    const team = await this.prisma.team.findUnique({
+      where: { id },
+      include: {
+        category: true,
+        players: {
+          orderBy: { jerseyNumber: "asc" },
+        },
+      },
+    });
 
-      if (!team) {
-        res.status(404).json({ error: "Team not found" });
-        return;
-      }
-
-      if (isBrowserRequest(req)) {
-        res.send(await renderTeamDetailView(team));
-        return;
-      }
-
-      res.json({ success: true, team });
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    if (!team) {
+      throw new NotFoundError("Team not found");
     }
+
+    if (isBrowserRequest(req)) {
+      res.send(await renderTeamDetailView(team));
+      return;
+    }
+
+    res.json({ success: true, team });
   }
 
   /**
    * POST /api/teams/:id/players
    */
   async addPlayer(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const { categoryId, name, position, jerseyNumber, photoUrl } = req.body;
+    const { id } = IdParamSchema.parse(req.params);
+    const data = AddTeamPlayerSchema.parse(req.body);
 
-      if (!name || !position || jerseyNumber === undefined || !categoryId) {
-        res.status(400).json({ error: "Missing required fields (name, position, jerseyNumber, categoryId)" });
-        return;
-      }
-
-      const player = await this.prisma.player.create({
-        data: {
-          teamId: id,
-          categoryId,
-          name,
-          position,
-          jerseyNumber: Number(jerseyNumber),
-          photoUrl: photoUrl || null,
-          seasonGoals: 0,
-          seasonPoints: 0,
-          seasonMatches: 0
-        }
-      });
-
-      res.status(201).json({ success: true, player });
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    const team = await this.prisma.team.findUnique({ where: { id } });
+    if (!team) {
+      throw new NotFoundError("Team not found");
     }
+
+    const player = await this.prisma.player.create({
+      data: {
+        teamId: id,
+        categoryId: data.categoryId,
+        name: data.name,
+        position: data.position,
+        jerseyNumber: data.jerseyNumber,
+        photoUrl: data.photoUrl || null,
+        seasonGoals: 0,
+        seasonPoints: 0,
+        seasonMatches: 0,
+      },
+    });
+
+    res.status(201).json({ success: true, player });
   }
 
   /**
    * PUT /api/teams/:id
    */
   async updateTeam(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const { name, crestUrl } = req.body;
-      const team = await this.prisma.team.update({
-        where: { id },
-        data: {
-          ...(name && { name }),
-          ...(crestUrl !== undefined && { crestUrl: crestUrl || null })
-        }
-      });
-      res.json({ success: true, team });
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    const { id } = IdParamSchema.parse(req.params);
+    const data = UpdateTeamSchema.parse(req.body);
+
+    const existing = await this.prisma.team.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundError("Team not found");
     }
+
+    const team = await this.prisma.team.update({
+      where: { id },
+      data: {
+        ...(data.name && { name: data.name }),
+        ...(data.crestUrl !== undefined && { crestUrl: data.crestUrl || null }),
+      },
+    });
+    res.json({ success: true, team });
   }
 
   /**
    * DELETE /api/teams/:id
    */
   async deleteTeam(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      await this.prisma.team.delete({ where: { id } });
-      res.json({ success: true, message: "Team deleted successfully" });
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    const { id } = IdParamSchema.parse(req.params);
+
+    const existing = await this.prisma.team.findUnique({ where: { id } });
+    if (!existing) {
+      throw new NotFoundError("Team not found");
     }
+
+    await this.prisma.team.delete({ where: { id } });
+    res.json({ success: true, message: "Team deleted successfully" });
   }
 
   /**
    * DELETE /api/teams/:id/players/:playerId
    */
   async removePlayer(req: Request, res: Response): Promise<void> {
-    try {
-      const { playerId } = req.params;
-      await this.prisma.player.delete({ where: { id: playerId } });
-      res.json({ success: true, message: "Player removed from team successfully" });
-    } catch (error: any) {
-      res.status(400).json({ error: error.message });
+    const { playerId } = req.params;
+    if (!playerId) {
+      throw new NotFoundError("Player ID required");
     }
+
+    const existing = await this.prisma.player.findUnique({ where: { id: playerId } });
+    if (!existing) {
+      throw new NotFoundError("Player not found");
+    }
+
+    await this.prisma.player.delete({ where: { id: playerId } });
+    res.json({ success: true, message: "Player removed from team successfully" });
   }
 }

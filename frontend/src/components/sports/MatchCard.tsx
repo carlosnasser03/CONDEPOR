@@ -25,9 +25,13 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, delay = 0 }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.4 }}
     >
-      <div className={`relative overflow-hidden rounded-2xl bg-[#0b111e] border ${
-        isFinished ? 'border-emerald-500/40 shadow-emerald-950/20' : isLive ? 'border-red-500/50 shadow-red-950/30' : 'border-amber-500/40 shadow-amber-950/20'
-      } shadow-2xl transition-all duration-300 hover:shadow-3xl`}>
+      <div
+        role="article"
+        aria-label={`Partido entre ${match.homeTeam?.name || 'Local'} y ${match.awayTeam?.name || 'Visitante'}: ${isFinished ? `Finalizado ${match.homeGoals ?? 0} a ${match.awayGoals ?? 0}` : isLive ? `En juego ${match.homeGoals ?? 0} a ${match.awayGoals ?? 0}` : 'Próximo partido'}`}
+        className={`relative overflow-hidden rounded-2xl bg-[#0b111e] border ${
+          isFinished ? 'border-emerald-500/40 shadow-emerald-950/20' : isLive ? 'border-red-500/50 shadow-red-950/30' : 'border-amber-500/40 shadow-amber-950/20'
+        } shadow-2xl transition-all duration-300 hover:shadow-3xl`}
+      >
         
         {/* Barra superior estilo MARCA */}
         <div className="flex justify-between items-center px-5 py-2.5 bg-black/40 border-b border-white/10 text-xs font-bold text-slate-400 tracking-wide">

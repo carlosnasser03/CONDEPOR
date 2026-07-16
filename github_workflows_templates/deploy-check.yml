@@ -1,0 +1,145 @@
+name: Production Readiness & Deployment Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  config-and-security-check:
+    name: Supabase & Vercel Configuration Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Verify no tracked secrets or .env files
+        run: |
+          echo "Checking for accidentally tracked .env files or secrets..."
+          TRACKED_ENV=$(git ls-files | grep -E '\.env$|\.env\.local$|\.env\.production$|\.pem$|\.key$' || true)
+          if [ -n "$TRACKED_ENV" ]; then
+            echo "::error::Found sensitive or .env files tracked in Git: $TRACKED_ENV"
+            exit 1
+          fi
+          echo "✅ No sensitive environment files tracked in Git."
+
+      - name: Verify Supabase PostgreSQL schema configuration
+        working-directory: backend
+        run: |
+          echo "Checking Prisma schema database provider for Supabase compatibility..."
+          if grep -q 'provider[[:space:]]*=[[:space:]]*"sqlite"' prisma/schema.prisma; then
+            echo "::error::Prisma schema is using SQLite! Supabase requires PostgreSQL."
+            exit 1
+          fi
+          if grep -q 'provider[[:space:]]*=[[:space:]]*"postgresql"' prisma/schema.prisma; then
+            echo "✅ Prisma schema properly configured with PostgreSQL for Supabase."
+          else
+            echo "::warning::Could not explicitly verify postgresql provider in schema.prisma. Please check."
+          fi
+
+      - name: Validate Prisma schema syntax
+        working-directory: backend
+        run: npx prisma validate
+
+      - name: Verify environment variable example templates exist
+        run: |
+          if [ ! -f backend/.env.example ]; then
+            echo "::warning::backend/.env.example not found"
+          else
+            echo "✅ backend/.env.example verified"
+          fi
+          if [ ! -f frontend/.env.local.example ]; then
+            echo "::warning::frontend/.env.local.example not found"
+          else
+            echo "✅ frontend/.env.local.example verified"
+          fi
+
+      - name: Verify Vercel & Next.js production setup
+        working-directory: frontend
+        run: |
+          echo "Checking Next.js configuration and requirements for Vercel deployment..."
+          if [ ! -f next.config.mjs ] && [ ! -f next.config.js ]; then
+            echo "::error::Next.js configuration file missing!"
+            exit 1
+          fi
+          echo "✅ Next.js config verified."
+
+  database-migration-check:
+    name: Supabase Migration Readiness Check
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: supabase_dummy_pass
+          POSTGRES_DB: condepor_staging_check
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Test Supabase Migration Deployment against clean PostgreSQL instance
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:supabase_dummy_pass@localhost:5432/condepor_staging_check?schema=public
+        run: |
+          echo "Simulating production migration check..."
+          npx prisma migrate status || true
+          npx prisma db push --skip-generate
+          echo "✅ Schema successfully applied to PostgreSQL database."
+
+  production-build-check:
+    name: Production Build Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Backend production build test
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:dummy@localhost:5432/dummy?schema=public
+        run: |
+          npm ci
+          npx prisma generate
+          npm run build
+          echo "✅ Backend dist/ directory built successfully."
+
+      - name: Frontend production bundle test
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_URL: https://api.condepor.com/api
+        run: |
+          npm ci
+          npm run build
+          echo "✅ Frontend .next/ production bundle built successfully."

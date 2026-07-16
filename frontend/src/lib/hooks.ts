@@ -3,6 +3,14 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from './api';
 import { Category, Player, Match, Standing, TopScorer } from '@/types';
+import {
+  validateData,
+  CategorySchema,
+  PlayerSchema,
+  MatchSchema,
+  StandingSchema,
+  TopScorerSchema,
+} from './validation';
 
 interface UseDataState<T> {
   data: T | null;
@@ -26,8 +34,13 @@ export const useCategories = () => {
       try {
         setState((prev) => ({ ...prev, loading: true }));
         const response = await apiClient.getCategories();
+        const rawList = Array.isArray(response) ? response : [];
+        const categories = rawList.map((cat: any) =>
+          validateData(CategorySchema, cat) || cat
+        ) as Category[];
+
         setState({
-          data: response,
+          data: categories,
           loading: false,
           error: null,
         });
@@ -64,8 +77,13 @@ export const useTeamPlayers = (teamId: string | undefined) => {
       try {
         setState((prev) => ({ ...prev, loading: true }));
         const response = await apiClient.getPlayers({ teamId });
+        const rawList = Array.isArray(response) ? response : [];
+        const players = rawList.map((player: any) =>
+          validateData(PlayerSchema, player) || player
+        ) as Player[];
+
         setState({
-          data: response,
+          data: players,
           loading: false,
           error: null,
         });
@@ -102,8 +120,13 @@ export const useCategoryMatches = (categoryId: string | undefined) => {
       try {
         setState((prev) => ({ ...prev, loading: true }));
         const response = await apiClient.getMatches({ categoryId });
+        const rawList = Array.isArray(response) ? response : [];
+        const matches = rawList.map((match: any) =>
+          validateData(MatchSchema, match) || match
+        ) as Match[];
+
         setState({
-          data: response,
+          data: matches,
           loading: false,
           error: null,
         });
@@ -140,8 +163,13 @@ export const useStandings = (categoryId: string | undefined) => {
       try {
         setState((prev) => ({ ...prev, loading: true }));
         const response = await apiClient.getStandings(categoryId);
+        const rawList = response?.standings || (Array.isArray(response) ? response : []);
+        const standings = rawList.map((standing: any) =>
+          validateData(StandingSchema, standing) || standing
+        ) as Standing[];
+
         setState({
-          data: response.standings || [],
+          data: standings,
           loading: false,
           error: null,
         });
@@ -178,8 +206,13 @@ export const useScorers = (categoryId: string | undefined, limit?: number) => {
       try {
         setState((prev) => ({ ...prev, loading: true }));
         const response = await apiClient.getScorers(categoryId, limit);
+        const rawList = response?.scorers || (Array.isArray(response) ? response : []);
+        const scorers = rawList.map((scorer: any) =>
+          validateData(TopScorerSchema, scorer) || scorer
+        ) as TopScorer[];
+
         setState({
-          data: response.scorers || [],
+          data: scorers,
           loading: false,
           error: null,
         });

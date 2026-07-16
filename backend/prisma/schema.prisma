@@ -1,10 +1,22 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+// ============================================
+// DATASOURCE CONFIGURATION
+// ============================================
+// Para desarrollo local instantáneo con SQLite (predeterminado para dev.db):
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
+
+// Para producción o staging con PostgreSQL (Supabase / AWS RDS / etc):
+// Para habilitar PostgreSQL, comenta el bloque 'datasource db' de sqlite arriba
+// y descomenta el bloque de postgresql abajo:
+// datasource db {
+//   provider = "postgresql"
+//   url      = env("DATABASE_URL")
+// }
 
 generator client {
   provider = "prisma-client-js"

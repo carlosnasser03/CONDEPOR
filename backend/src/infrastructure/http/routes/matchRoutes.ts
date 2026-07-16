@@ -8,6 +8,8 @@ import { PrismaPlayerMatchStatRepository } from "@infrastructure/persistence/pri
 import { ScoringEngine } from "@domain/scoring/ScoringEngine";
 import { StandingsCalculator } from "@domain/standings/StandingsCalculator";
 import { getPrismaClient } from "@infrastructure/persistence/prisma/PrismaClient";
+import { asyncHandler } from "@infrastructure/middleware/errorHandler";
+import { strictLimiter } from "@infrastructure/middleware/rateLimiter";
 
 const router = Router();
 
@@ -32,11 +34,11 @@ const matchService = new MatchService(
 const controller = new MatchController(matchService);
 
 // Rutas
-router.post("/", (req, res) => controller.createMatch(req, res));
-router.get("/", (req, res) => controller.getMatches(req, res));
-router.get("/:id", (req, res) => controller.getMatch(req, res));
-router.put("/:id", (req, res) => controller.updateMatch(req, res));
-router.delete("/:id", (req, res) => controller.deleteMatch(req, res));
-router.post("/:id/result", (req, res) => controller.recordResult(req, res));
+router.post("/", asyncHandler((req, res) => controller.createMatch(req, res)));
+router.get("/", asyncHandler((req, res) => controller.getMatches(req, res)));
+router.get("/:id", asyncHandler((req, res) => controller.getMatch(req, res)));
+router.put("/:id", asyncHandler((req, res) => controller.updateMatch(req, res)));
+router.delete("/:id", asyncHandler((req, res) => controller.deleteMatch(req, res)));
+router.post("/:id/result", strictLimiter, asyncHandler((req, res) => controller.recordResult(req, res)));
 
 export default router;

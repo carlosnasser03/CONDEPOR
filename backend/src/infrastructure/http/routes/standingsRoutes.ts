@@ -5,6 +5,7 @@ import { PrismaTeamRepository } from "@infrastructure/persistence/prisma/PrismaT
 import { PrismaMatchRepository } from "@infrastructure/persistence/prisma/PrismaMatchRepository";
 import { StandingsCalculator } from "@domain/standings/StandingsCalculator";
 import { getPrismaClient } from "@infrastructure/persistence/prisma/PrismaClient";
+import { asyncHandler } from "@infrastructure/middleware/errorHandler";
 
 const router = Router();
 
@@ -16,8 +17,8 @@ const calculator = new StandingsCalculator(prisma);
 const service = new StandingsService(teamRepo, matchRepo, calculator);
 const controller = new StandingsController(service);
 
-router.get("/:categoryId", (req, res) =>
+router.get("/:categoryId", asyncHandler((req, res) =>
   controller.getStandingsByCategory(req, res)
-);
+));
 
 export default router;

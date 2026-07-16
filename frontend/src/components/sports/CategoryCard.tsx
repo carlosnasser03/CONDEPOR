@@ -19,7 +19,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
   delay = 0,
 }) => {
   return (
-    <Link href={`/categories/${id}`}>
+    <Link href={`/categories/${id}`} aria-label={`Ver detalles de la categoría ${name}`}>
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}

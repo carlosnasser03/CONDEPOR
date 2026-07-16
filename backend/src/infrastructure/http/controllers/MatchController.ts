@@ -6,6 +6,14 @@ import { Request, Response } from "express";
 import { MatchService } from "@application/MatchService";
 import { isBrowserRequest } from "../views/layout";
 import { renderMatchesView } from "../views/matchesView";
+import {
+  CreateMatchSchema,
+  UpdateMatchSchema,
+  RecordMatchResultSchema,
+  IdParamSchema,
+  MatchQuerySchema,
+} from "@domain/validation/schemas";
+import { NotFoundError } from "@infrastructure/errors/AppError";
 
 export class MatchController {
   constructor(private matchService: MatchService) {}
@@ -14,40 +22,20 @@ export class MatchController {
    * POST /api/matches
    */
   async createMatch(req: Request, res: Response): Promise<void> {
-    try {
-      const { categoryId, homeTeamId, awayTeamId, date, venue } = req.body;
+    const data = CreateMatchSchema.parse(req.body);
 
-      if (!categoryId || !homeTeamId || !awayTeamId || !date || !venue) {
-        res.status(400).json({
-          error: "Missing required fields",
-          required: [
-            "categoryId",
-            "homeTeamId",
-            "awayTeamId",
-            "date",
-            "venue",
-          ],
-        });
-        return;
-      }
+    const match = await this.matchService.createMatch({
+      categoryId: data.categoryId,
+      homeTeamId: data.homeTeamId,
+      awayTeamId: data.awayTeamId,
+      date: data.date,
+      venue: data.venue,
+    });
 
-      const match = await this.matchService.createMatch({
-        categoryId,
-        homeTeamId,
-        awayTeamId,
-        date: new Date(date),
-        venue,
-      });
-
-      res.status(201).json({
-        success: true,
-        data: match,
-      });
-    } catch (error: any) {
-      res.status(400).json({
-        error: error.message,
-      });
-    }
+    res.status(201).json({
+      success: true,
+      data: match,
+    });
   }
 
   /**
@@ -55,16 +43,16 @@ export class MatchController {
    */
   async getMatches(req: Request, res: Response): Promise<void> {
     try {
-      const { categoryId, status, teamId } = req.query;
+      const query = MatchQuerySchema.parse(req.query);
 
       const matches = await this.matchService.getMatches({
-        categoryId: categoryId as string,
-        status: status as string,
-        teamId: teamId as string,
+        categoryId: query.categoryId,
+        status: query.status,
+        teamId: query.teamId,
       });
 
       if (isBrowserRequest(req)) {
-        res.send(await renderMatchesView(matches, (categoryId as string) || ""));
+        res.send(await renderMatchesView(matches, query.categoryId || ""));
         return;
       }
 
@@ -78,9 +66,7 @@ export class MatchController {
         res.send(await renderMatchesView([], (req.query.categoryId as string) || ""));
         return;
       }
-      res.status(400).json({
-        error: error.message,
-      });
+      throw error;
     }
   }
 
@@ -88,117 +74,68 @@ export class MatchController {
    * GET /api/matches/:id
    */
   async getMatch(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
+    const { id } = IdParamSchema.parse(req.params);
 
-      const match = await this.matchService.getMatchDetail(id);
-      if (!match) {
-        res.status(404).json({
-          error: "Match not found",
-        });
-        return;
-      }
-
-      res.json({
-        success: true,
-        data: match,
-      });
-    } catch (error: any) {
-      res.status(400).json({
-        error: error.message,
-      });
+    const match = await this.matchService.getMatchDetail(id);
+    if (!match) {
+      throw new NotFoundError("Match not found");
     }
+
+    res.json({
+      success: true,
+      data: match,
+    });
   }
 
   /**
    * POST /api/matches/:id/result
    */
   async recordResult(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const { homeGoals, awayGoals, playerStats } = req.body;
+    const { id } = IdParamSchema.parse(req.params);
+    const data = RecordMatchResultSchema.parse(req.body);
 
-      if (homeGoals === undefined || awayGoals === undefined) {
-        res.status(400).json({
-          error: "Missing required fields",
-          required: ["homeGoals", "awayGoals", "playerStats"],
-        });
-        return;
-      }
+    const result = await this.matchService.recordResult(id, {
+      homeGoals: data.homeGoals,
+      awayGoals: data.awayGoals,
+      playerStats: data.playerStats,
+    });
 
-      if (!Array.isArray(playerStats)) {
-        res.status(400).json({
-          error: "playerStats must be an array",
-        });
-        return;
-      }
-
-      if (homeGoals < 0 || awayGoals < 0) {
-        res.status(400).json({
-          error: "Goals cannot be negative",
-        });
-        return;
-      }
-
-      const result = await this.matchService.recordResult(id, {
-        homeGoals,
-        awayGoals,
-        playerStats,
-      });
-
-      res.json({
-        success: true,
-        message: "Result registered successfully",
-        data: result,
-      });
-    } catch (error: any) {
-      res.status(400).json({
-        error: error.message,
-      });
-    }
+    res.json({
+      success: true,
+      message: "Result registered successfully",
+      data: result,
+    });
   }
 
   /**
    * PUT /api/matches/:id
    */
   async updateMatch(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const { date, venue } = req.body;
+    const { id } = IdParamSchema.parse(req.params);
+    const data = UpdateMatchSchema.parse(req.body);
 
-      const match = await this.matchService.updateMatch(id, {
-        ...(date && { date: new Date(date) }),
-        venue,
-      });
+    const match = await this.matchService.updateMatch(id, {
+      ...(data.date && { date: data.date }),
+      ...(data.venue && { venue: data.venue }),
+    });
 
-      res.json({
-        success: true,
-        data: match,
-      });
-    } catch (error: any) {
-      res.status(400).json({
-        error: error.message,
-      });
-    }
+    res.json({
+      success: true,
+      data: match,
+    });
   }
 
   /**
    * DELETE /api/matches/:id
    */
   async deleteMatch(req: Request, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
+    const { id } = IdParamSchema.parse(req.params);
 
-      await this.matchService.deleteMatch(id);
+    await this.matchService.deleteMatch(id);
 
-      res.json({
-        success: true,
-        message: "Match deleted successfully",
-      });
-    } catch (error: any) {
-      res.status(400).json({
-        error: error.message,
-      });
-    }
+    res.json({
+      success: true,
+      message: "Match deleted successfully",
+    });
   }
 }

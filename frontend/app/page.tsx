@@ -17,7 +17,7 @@ export default function Home() {
       <HeroSection animationUrl={ANIMATION_URL} />
 
       {/* Categorías */}
-      <section id="categories" className="py-20 px-4 bg-white">
+      <section id="categories" role="region" aria-label="Sección principal de Categorías" className="py-20 px-4 bg-white">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl font-bold text-center text-gray-900 mb-4">
             Categorías

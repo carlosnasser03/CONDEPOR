@@ -3,13 +3,22 @@
  * Aquí se inicia Express y se escucha en puerto
  */
 
+import env from "@config/env";
 import { createApp } from "./app";
 import { getPrismaClient, disconnectPrisma } from "@infrastructure/persistence/prisma/PrismaClient";
 
-const PORT = parseInt(process.env.PORT || "4000", 10);
+const PORT = env.PORT;
 
 async function startServer(): Promise<void> {
   try {
+    console.log(`\n🔧 Environment: ${env.NODE_ENV}`);
+    console.log(
+      `📊 Database: ${env.DATABASE_URL.replace(/:[^:@]+@/, ":***@")}`
+    );
+    console.log(
+      `🔐 CORS Origins: ${env.CORS_ORIGINS || env.CORS_ORIGIN || "http://localhost:3000,http://localhost:3001"}`
+    );
+
     // Crear app
     const app = createApp();
 

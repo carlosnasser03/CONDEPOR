@@ -30,10 +30,12 @@ export const Tabs: React.FC<TabsProps> = ({
   return (
     <div>
       {/* Tab Buttons */}
-      <div className="flex gap-2 border-b border-gray-200 mb-6 flex-wrap">
+      <div role="tablist" className="flex gap-2 border-b border-gray-200 mb-6 flex-wrap">
         {tabs.map((tab) => (
           <button
             key={tab.id}
+            role="tab"
+            aria-selected={active === tab.id}
             onClick={() => handleTabClick(tab.id)}
             className={`
               flex items-center px-4 py-2 font-semibold text-sm transition-colors
@@ -53,6 +55,7 @@ export const Tabs: React.FC<TabsProps> = ({
       {/* Tab Content */}
       <motion.div
         key={active}
+        role="tabpanel"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}

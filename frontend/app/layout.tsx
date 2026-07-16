@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Toaster } from 'react-hot-toast';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -22,7 +23,17 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className="bg-[#080d1a] text-slate-100 antialiased selection:bg-amber-500 selection:text-slate-950">
-        {children}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-50 bg-amber-500 text-slate-950 font-bold p-3 rounded-br-lg shadow-lg"
+        >
+          Saltar al contenido principal
+        </a>
+        <ErrorBoundary>
+          <main id="main-content">
+            {children}
+          </main>
+        </ErrorBoundary>
         <Toaster position="bottom-right" />
       </body>
     </html>

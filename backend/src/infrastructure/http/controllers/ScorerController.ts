@@ -2,6 +2,10 @@ import { Request, Response } from "express";
 import { ScorerService } from "@application/ScorerService";
 import { isBrowserRequest } from "../views/layout";
 import { renderScorersView } from "../views/scorersView";
+import {
+  CategoryIdParamSchema,
+  TopScorersQuerySchema,
+} from "@domain/validation/schemas";
 
 export class ScorerController {
   constructor(private scorerService: ScorerService) {}
@@ -11,13 +15,10 @@ export class ScorerController {
    */
   async getTopScorers(req: Request, res: Response): Promise<void> {
     try {
-      const { categoryId } = req.params;
-      const { limit = "10" } = req.query;
+      const { categoryId } = CategoryIdParamSchema.parse(req.params);
+      const { limit } = TopScorersQuerySchema.parse(req.query);
 
-      const scorers = await this.scorerService.getTopScorers(
-        categoryId,
-        parseInt(limit as string)
-      );
+      const scorers = await this.scorerService.getTopScorers(categoryId, limit);
 
       if (isBrowserRequest(req)) {
         res.send(await renderScorersView(scorers, categoryId));
@@ -35,9 +36,7 @@ export class ScorerController {
         res.send(await renderScorersView([], req.params.categoryId || ""));
         return;
       }
-      res.status(400).json({
-        error: error.message,
-      });
+      throw error;
     }
   }
 
@@ -46,7 +45,7 @@ export class ScorerController {
    */
   async getAllScorers(req: Request, res: Response): Promise<void> {
     try {
-      const { categoryId } = req.params;
+      const { categoryId } = CategoryIdParamSchema.parse(req.params);
 
       const scorers = await this.scorerService.getAllScorers(categoryId);
 
@@ -66,9 +65,7 @@ export class ScorerController {
         res.send(await renderScorersView([], req.params.categoryId || ""));
         return;
       }
-      res.status(400).json({
-        error: error.message,
-      });
+      throw error;
     }
   }
 }

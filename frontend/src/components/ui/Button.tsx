@@ -47,6 +47,8 @@ export const Button: React.FC<ButtonProps> = ({
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
+      aria-disabled={disabled || loading}
+      aria-busy={loading}
       className={`${baseStyle} ${variants[variant]} ${sizes[size]} ${className}`}
     >
       {loading ? '...' : children}

@@ -37,7 +37,7 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ standings }) => 
   };
 
   return (
-    <div className="bg-[#0b111e] rounded-2xl shadow-2xl border border-slate-800 overflow-hidden transition-all duration-300 text-slate-100">
+    <div className="bg-[#0b111e] rounded-2xl shadow-2xl border border-slate-800 overflow-hidden transition-all duration-300 text-slate-100" role="region" aria-label="Tabla de clasificación oficial">
       
       {/* Cabecera superior MARCA LaLiga Style */}
       <div className="bg-[#0f172a] text-white px-6 py-4 flex flex-wrap items-center justify-between border-b border-slate-800 gap-3">
@@ -60,19 +60,19 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ standings }) => 
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+        <table className="w-full text-left border-collapse" aria-describedby="standings-description">
           <thead>
             <tr className="bg-[#111827] border-b-2 border-slate-800 text-slate-300 text-[11px] sm:text-xs font-black uppercase tracking-wider">
-              <th className="py-4 pl-5 pr-3 w-14 text-center text-amber-400">POS</th>
-              <th className="py-4 px-4 min-w-[220px] text-white">EQUIPO</th>
-              <th className="py-4 px-3 text-center w-12 text-slate-200 font-black" title="Partidos Jugados">PJ</th>
-              <th className="py-4 px-3 text-center w-12 text-emerald-400 font-black" title="Partidos Ganados">G</th>
-              <th className="py-4 px-3 text-center w-12 text-amber-400 font-black" title="Partidos Empatados">E</th>
-              <th className="py-4 px-3 text-center w-12 text-red-400 font-black" title="Partidos Perdidos">P</th>
-              <th className="py-4 px-3 text-center w-12 text-slate-400 hidden md:table-cell" title="Goles a Favor">GF</th>
-              <th className="py-4 px-3 text-center w-12 text-slate-400 hidden md:table-cell" title="Goles en Contra">GC</th>
-              <th className="py-4 px-3 text-center w-16 text-slate-200 font-black" title="Diferencia de Goles">DIF</th>
-              <th className="py-4 pl-3 pr-6 text-right w-24 sm:w-28 text-amber-400 font-black">PTS</th>
+              <th scope="col" className="py-4 pl-5 pr-3 w-14 text-center text-amber-400">POS</th>
+              <th scope="col" className="py-4 px-4 min-w-[220px] text-white">EQUIPO</th>
+              <th scope="col" className="py-4 px-3 text-center w-12 text-slate-200 font-black" title="Partidos Jugados">PJ</th>
+              <th scope="col" className="py-4 px-3 text-center w-12 text-emerald-400 font-black" title="Partidos Ganados">G</th>
+              <th scope="col" className="py-4 px-3 text-center w-12 text-amber-400 font-black" title="Partidos Empatados">E</th>
+              <th scope="col" className="py-4 px-3 text-center w-12 text-red-400 font-black" title="Partidos Perdidos">P</th>
+              <th scope="col" className="py-4 px-3 text-center w-12 text-slate-400 hidden md:table-cell" title="Goles a Favor">GF</th>
+              <th scope="col" className="py-4 px-3 text-center w-12 text-slate-400 hidden md:table-cell" title="Goles en Contra">GC</th>
+              <th scope="col" className="py-4 px-3 text-center w-16 text-slate-200 font-black" title="Diferencia de Goles">DIF</th>
+              <th scope="col" className="py-4 pl-3 pr-6 text-right w-24 sm:w-28 text-amber-400 font-black">PTS</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/80 text-sm font-semibold">
@@ -83,6 +83,7 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ standings }) => 
               return (
                 <tr
                   key={team.teamId}
+                  role="row"
                   className={`hover:bg-[#162033] transition-colors duration-150 bg-[#0b111e] ${style.border}`}
                 >
                   {/* Posición con insignia de color */}
@@ -97,6 +98,7 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ standings }) => 
                     <Link
                       href={`/teams/${team.teamId}`}
                       className="flex items-center gap-3.5 group"
+                      aria-label={`Ver jugadores de ${team.teamName}`}
                     >
                       <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center overflow-hidden" style={{ width: '32px', height: '32px', minWidth: '32px', maxWidth: '32px', minHeight: '32px', maxHeight: '32px' }}>
                         {team.teamCrest ? (
@@ -175,6 +177,10 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ standings }) => 
             })}
           </tbody>
         </table>
+        <p id="standings-description" className="sr-only">
+          Tabla de posiciones ordenada por puntos en orden descendente.
+          Puedes hacer clic en los nombres de los equipos para ver los jugadores.
+        </p>
       </div>
 
       {/* Pie de tabla explicativo */}
