@@ -47,33 +47,33 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, delay = 0 }) => {
           </div>
           <div>
             {isFinished ? (
-              <span className="bg-emerald-950/80 text-emerald-400 border border-emerald-500/50 px-3 py-0.5 rounded-full font-black text-[11px] tracking-wider uppercase shadow-sm">
-                ✓ Finalizado
+              <span className="text-emerald-400 font-black text-xs tracking-wider uppercase flex items-center gap-1">
+                ✓ FINALIZADO
               </span>
             ) : isLive ? (
-              <span className="bg-red-950/90 text-red-400 border border-red-500/80 px-3 py-0.5 rounded-full font-black text-[11px] tracking-wider uppercase animate-pulse shadow-sm">
-                🔴 En Vivo
+              <span className="text-red-400 font-black text-xs tracking-wider uppercase animate-pulse flex items-center gap-1">
+                🔴 EN VIVO
               </span>
             ) : (
-              <span className="bg-[#162038] text-amber-300 border border-amber-400/40 px-3 py-0.5 rounded-full font-bold text-[11px] tracking-wide shadow-sm flex items-center gap-1">
+              <span className="text-amber-400 font-extrabold text-xs sm:text-sm flex items-center gap-1.5 tracking-wide">
                 📅 {formatDate(match.date)} &bull; {formatTime(match.date)}
               </span>
             )}
           </div>
         </div>
 
-        {/* Fila principal del Marcador de Batalla (Scoreboard Centralizado y Simétrico) */}
+        {/* Fila principal del Marcador de Batalla (Scoreboard Centralizado y Simétrico sin encuadres internos) */}
         <div className="px-4 sm:px-8 py-7 flex items-center justify-center">
-          <div className="w-full max-w-4xl flex items-center justify-between gap-2 sm:gap-6">
+          <div className="w-full max-w-4xl flex items-center justify-between gap-3 sm:gap-8">
             
             {/* Equipo Local (Alineado a la derecha hacia el centro) */}
-            <div className="flex items-center justify-end gap-3 flex-1 min-w-0">
+            <div className="flex items-center justify-end gap-3.5 flex-1 min-w-0">
               <div className="text-right min-w-0">
                 <h3 className="text-base sm:text-xl font-black text-white tracking-tight leading-snug truncate">
                   {match.homeTeam?.name || 'Local'}
                 </h3>
-                <span className="inline-block text-[10px] font-black text-amber-400 tracking-widest uppercase bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30 mt-1">
-                  Local
+                <span className="block text-xs font-black text-amber-400 tracking-widest uppercase mt-0.5">
+                  LOCAL
                 </span>
               </div>
               <div className="w-9 h-9 sm:w-10 sm:h-10 flex-shrink-0 flex items-center justify-center overflow-hidden" style={{ width: '38px', height: '38px', minWidth: '38px', maxWidth: '38px', minHeight: '38px', maxHeight: '38px' }}>
@@ -94,36 +94,34 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, delay = 0 }) => {
               </div>
             </div>
 
-            {/* Pastilla Central del Marcador (Global Score centralizado) */}
-            <div className="flex flex-col items-center justify-center shrink-0 w-32 sm:w-40 mx-1">
-              <div className={`w-full bg-[#080d1a] border-2 ${
-                isFinished ? 'border-emerald-500/80 shadow-emerald-500/10' : isLive ? 'border-red-500 shadow-red-500/20' : 'border-amber-400/80 shadow-amber-500/10'
-              } px-3 py-2 rounded-2xl shadow-lg flex items-center justify-center gap-3`}>
-                {isFinished || isLive ? (
-                  <>
-                    <span className="font-mono text-2xl sm:text-3xl font-black text-white tracking-wider">
-                      {match.homeGoals ?? 0}
-                    </span>
-                    <span className="text-lg sm:text-xl font-bold text-slate-500">-</span>
-                    <span className="font-mono text-2xl sm:text-3xl font-black text-white tracking-wider">
-                      {match.awayGoals ?? 0}
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-lg sm:text-2xl font-black text-amber-400 tracking-widest uppercase">
-                    VS
+            {/* Pastilla Central del Marcador (Sin recuadros molestos cuando es VS) */}
+            <div className="flex flex-col items-center justify-center shrink-0 w-28 sm:w-36 mx-1 text-center">
+              {isFinished || isLive ? (
+                <div className={`w-full bg-[#080d1a] border-2 ${
+                  isFinished ? 'border-emerald-500/80 shadow-emerald-500/10' : 'border-red-500 shadow-red-500/20'
+                } px-3 py-2 rounded-2xl shadow-lg flex items-center justify-center gap-3`}>
+                  <span className="font-mono text-2xl sm:text-3xl font-black text-white tracking-wider">
+                    {match.homeGoals ?? 0}
                   </span>
-                )}
-              </div>
+                  <span className="text-lg sm:text-xl font-bold text-slate-500">-</span>
+                  <span className="font-mono text-2xl sm:text-3xl font-black text-white tracking-wider">
+                    {match.awayGoals ?? 0}
+                  </span>
+                </div>
+              ) : (
+                <span className="text-xl sm:text-2xl font-black text-amber-400 tracking-[0.2em] drop-shadow-[0_0_10px_rgba(245,158,11,0.5)] py-2">
+                  VS
+                </span>
+              )}
               {isFinished && (
-                <span className="text-[10px] font-black text-emerald-400 mt-1.5 tracking-widest uppercase bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
-                  Resultado Oficial
+                <span className="block text-[11px] font-black text-emerald-400 mt-1.5 tracking-widest uppercase">
+                  RESULTADO OFICIAL
                 </span>
               )}
             </div>
 
             {/* Equipo Visitante (Alineado a la izquierda hacia el centro) */}
-            <div className="flex items-center justify-start gap-3 flex-1 min-w-0">
+            <div className="flex items-center justify-start gap-3.5 flex-1 min-w-0">
               <div className="w-9 h-9 sm:w-10 sm:h-10 flex-shrink-0 flex items-center justify-center overflow-hidden" style={{ width: '38px', height: '38px', minWidth: '38px', maxWidth: '38px', minHeight: '38px', maxHeight: '38px' }}>
                 {match.awayTeam?.crestUrl ? (
                   <img
@@ -144,8 +142,8 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, delay = 0 }) => {
                 <h3 className="text-base sm:text-xl font-black text-white tracking-tight leading-snug truncate">
                   {match.awayTeam?.name || 'Visitante'}
                 </h3>
-                <span className="inline-block text-[10px] font-black text-sky-400 tracking-widest uppercase bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/30 mt-1">
-                  Visitante
+                <span className="block text-xs font-black text-sky-400 tracking-widest uppercase mt-0.5">
+                  VISITANTE
                 </span>
               </div>
             </div>
