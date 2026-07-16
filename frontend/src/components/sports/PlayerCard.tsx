@@ -206,11 +206,11 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, delay = 0 }) => 
 
   const getPositionStyle = (pos: string) => {
     const p = pos.toLowerCase();
-    if (p.includes('por')) return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-emerald-500/10';
-    if (p.includes('dfc') || p.includes('ld') || p.includes('li') || p.includes('def')) return 'bg-sky-500/20 text-sky-300 border-sky-500/40 shadow-sky-500/10';
-    if (p.includes('mc') || p.includes('med')) return 'bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-purple-500/10';
-    if (p.includes('dc') || p.includes('ed') || p.includes('ei') || p.includes('del')) return 'bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-amber-500/10';
-    return 'bg-slate-700/40 text-slate-300 border-slate-600/40';
+    if (p.includes('por')) return 'bg-emerald-950/90 text-emerald-300 border-2 border-emerald-400/80 shadow-md shadow-emerald-500/20';
+    if (p.includes('dfc') || p.includes('ld') || p.includes('li') || p.includes('def')) return 'bg-sky-950/90 text-sky-300 border-2 border-sky-400/80 shadow-md shadow-sky-500/20';
+    if (p.includes('mc') || p.includes('med')) return 'bg-purple-950/90 text-purple-300 border-2 border-purple-400/80 shadow-md shadow-purple-500/20';
+    if (p.includes('dc') || p.includes('ed') || p.includes('ei') || p.includes('del')) return 'bg-amber-950/90 text-amber-300 border-2 border-amber-400/80 shadow-md shadow-amber-500/20';
+    return 'bg-slate-800 text-slate-200 border-2 border-slate-500 shadow-md';
   };
 
   const hasValidPhoto = player.photoUrl && player.photoUrl.trim() !== '' && !imgError;
@@ -228,7 +228,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, delay = 0 }) => 
           whileHover={{ scale: 1.03, y: -4 }}
           whileTap={{ scale: 0.96 }}
           transition={{ type: 'spring', stiffness: 450, damping: 26 }}
-          className="h-full bg-[#0f172a]/95 hover:bg-[#162038] border border-slate-800/85 hover:border-amber-500/60 rounded-2xl p-5 transition-colors duration-300 shadow-lg hover:shadow-2xl flex flex-col justify-between group relative overflow-hidden cursor-pointer select-none"
+          className="h-full bg-gradient-to-b from-[#111827] to-[#0b111e] hover:from-[#162038] hover:to-[#0f172a] border-2 border-slate-800 hover:border-amber-400/80 rounded-2xl p-5 transition-all duration-300 shadow-xl hover:shadow-2xl flex flex-col justify-between group relative overflow-hidden cursor-pointer select-none"
         >
           {/* Resplandor sutil MARCA en hover */}
           <div className="absolute -top-24 -right-24 w-48 h-48 bg-amber-500/15 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
@@ -264,23 +264,23 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, delay = 0 }) => 
 
               {/* Etiqueta Flotante de Posición Táctica */}
               <div className="absolute top-2.5 right-2.5 z-20">
-                <span className={`text-xs font-black px-2.5 py-1 rounded-lg border backdrop-blur-md shadow-sm ${getPositionStyle(player.position)}`}>
+                <span className={`text-xs font-black px-2.5 py-1 rounded-lg tracking-wider shadow-md ${getPositionStyle(player.position || '')}`}>
                   {tactical.code} &bull; #{player.jerseyNumber || '0'}
                 </span>
               </div>
             </div>
 
             {/* Nombre y Posición en Línea (A la par del nombre según requerimiento) */}
-            <div className="flex flex-wrap items-center justify-center gap-2 text-center mb-3">
-              <h3 className="text-lg font-black text-white group-hover:text-amber-400 transition-colors duration-200 tracking-tight leading-snug">
+            <div className="flex flex-wrap items-center justify-center gap-2 text-center mb-4">
+              <h3 className="text-lg font-black text-white group-hover:text-amber-300 transition-colors duration-200 tracking-tight leading-snug">
                 {player.name || 'Sin Nombre'}
               </h3>
-              <span className={`text-[11px] font-black px-2.5 py-0.5 rounded-lg border tracking-wider uppercase shrink-0 shadow-sm ${getPositionStyle(player.position || '')}`}>
+              <span className={`text-[11px] font-black px-2.5 py-0.5 rounded-lg tracking-wider uppercase shrink-0 shadow-sm ${getPositionStyle(player.position || '')}`}>
                 {player.position || 'JUG'}
               </span>
             </div>
 
-            {/* Botón táctil para Abrir Modal de Demarcaciones (Diseño mejorado de alta legibilidad) */}
+            {/* Botón táctil para Abrir Modal de Demarcaciones (Alta visibilidad y contraste garantizado) */}
             <div className="mb-4">
               <motion.button
                 type="button"
@@ -291,10 +291,10 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, delay = 0 }) => 
                 }}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.95 }}
-                className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider shadow-md shadow-amber-500/20 hover:shadow-amber-500/35 border border-amber-300/40 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                className="w-full py-2.5 px-4 rounded-xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#020617] font-black text-xs uppercase tracking-widest shadow-lg shadow-amber-500/25 border-2 border-[#fcd34d] flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
-                <span className="text-sm">📖</span>
-                <span>Ver Demarcación y Roles</span>
+                <span className="text-base">📖</span>
+                <span>VER DEMARCACIÓN Y ROLES</span>
               </motion.button>
             </div>
           </div>
