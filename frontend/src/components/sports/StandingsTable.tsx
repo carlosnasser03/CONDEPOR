@@ -152,25 +152,21 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ standings }) => 
                     {team.goalsAgainst}
                   </td>
 
-                  {/* Diferencia */}
-                  <td className="py-3.5 px-3 text-center font-black">
-                    <span className={`inline-block px-2.5 py-0.5 rounded text-xs font-extrabold ${
-                      team.goalDifference > 0
-                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                        : team.goalDifference < 0
-                        ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                        : 'bg-slate-800 text-slate-300 border border-slate-700'
-                    }`}>
-                      {team.goalDifference > 0 ? '+' : ''}
-                      {team.goalDifference}
-                    </span>
+                  {/* Diferencia (Sin encuadres internos según solicitud) */}
+                  <td className={`py-3.5 px-3 text-center font-black text-sm ${
+                    team.goalDifference > 0
+                      ? 'text-emerald-400'
+                      : team.goalDifference < 0
+                      ? 'text-red-400'
+                      : 'text-slate-400'
+                  }`}>
+                    {team.goalDifference > 0 ? '+' : ''}
+                    {team.goalDifference}
                   </td>
 
-                  {/* Puntos MARCA pill style */}
-                  <td className="py-3.5 pl-3 pr-6 text-right">
-                    <span className="inline-block bg-[#162033] text-amber-400 font-mono font-black text-sm sm:text-base px-3.5 py-1 rounded-xl shadow-inner border border-amber-500/40 tracking-wider">
-                      {team.points}
-                    </span>
+                  {/* Puntos totales (Sin encuadres internos, tipografía limpia MARCA) */}
+                  <td className="py-3.5 pl-3 pr-6 text-right font-black text-base sm:text-lg text-amber-400 tracking-tight">
+                    {team.points}
                   </td>
                 </tr>
               );
