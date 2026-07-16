@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Standing } from '@/types';
 import Link from 'next/link';
 
@@ -7,6 +7,8 @@ interface StandingsTableProps {
 }
 
 export const StandingsTable: React.FC<StandingsTableProps> = ({ standings }) => {
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+
   const getPositionStyle = (position: number) => {
     if (position === 1) {
       return {
@@ -111,18 +113,19 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ standings }) => 
                       className="flex items-center gap-3.5 group"
                       aria-label={`Ver jugadores de ${team.teamName}`}
                     >
-                      <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center overflow-hidden" style={{ width: '32px', height: '32px', minWidth: '32px', maxWidth: '32px', minHeight: '32px', maxHeight: '32px' }}>
-                        {team.teamCrest ? (
+                      <div className="w-8 h-8 shrink-0 flex items-center justify-center overflow-hidden" style={{ width: '32px', height: '32px', minWidth: '32px', maxWidth: '32px', minHeight: '32px', maxHeight: '32px' }}>
+                        {team.teamCrest && !imageErrors[team.teamId] ? (
                           <img
-                            src={team.teamCrest}
+                            src={team.teamCrest || undefined}
                             alt={team.teamName}
                             width={32}
                             height={32}
                             style={{ width: '32px', height: '32px', minWidth: '32px', maxWidth: '32px', minHeight: '32px', maxHeight: '32px', objectFit: 'contain' }}
-                            className="drop-shadow-md group-hover:scale-110 transition-transform flex-shrink-0 block"
+                            onError={() => setImageErrors((prev) => ({ ...prev, [team.teamId]: true }))}
+                            className="drop-shadow-md group-hover:scale-110 transition-transform shrink-0 block"
                           />
                         ) : (
-                          <div className="w-8 h-8 rounded-full bg-slate-800 text-amber-400 font-black text-xs flex items-center justify-center flex-shrink-0 border border-slate-700" style={{ width: '32px', height: '32px', minWidth: '32px', maxWidth: '32px', minHeight: '32px', maxHeight: '32px' }}>
+                          <div className="w-8 h-8 rounded-full bg-slate-800 text-amber-400 font-black text-xs flex items-center justify-center shrink-0 border border-slate-700" style={{ width: '32px', height: '32px', minWidth: '32px', maxWidth: '32px', minHeight: '32px', maxHeight: '32px' }}>
                             {crestFallback}
                           </div>
                         )}

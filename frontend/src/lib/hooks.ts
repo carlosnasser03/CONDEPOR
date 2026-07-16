@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { z } from 'zod';
 import { apiClient } from './api';
 import { Category, Player, Match, Standing, TopScorer } from '@/types';
 import {
@@ -12,221 +13,143 @@ import {
   TopScorerSchema,
 } from './validation';
 
-interface UseDataState<T> {
+export interface UseDataState<T> {
   data: T | null;
   loading: boolean;
   error: Error | null;
 }
 
-// ============================================
-// CATEGORÍAS
-// ============================================
+const MAX_RETRIES = 3;
 
-export const useCategories = () => {
-  const [state, setState] = useState<UseDataState<Category[]>>({
+/**
+ * Generic Hook Factory (useApi)
+ * - Eliminates code duplication across all data fetching hooks (P2)
+ * - Implements automatic error retry logic with exponential backoff (P5)
+ * - Enforces strict Zod validation without fallback masking of corrupted items (P3)
+ */
+export function useApi<T>(
+  fetcher: () => Promise<unknown>,
+  schema: z.ZodTypeAny,
+  dependencies: unknown[] = [],
+  enabled: boolean = true
+): UseDataState<T[]> {
+  const [state, setState] = useState<UseDataState<T[]>>({
     data: null,
     loading: true,
     error: null,
   });
+  const [retryCount, setRetryCount] = useState(0);
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        setState((prev) => ({ ...prev, loading: true }));
-        const response = await apiClient.getCategories();
-        const rawList = Array.isArray(response) ? response : [];
-        const categories = rawList.map((cat: any) =>
-          validateData(CategorySchema, cat) || cat
-        ) as Category[];
+  const executeFetch = useCallback(async (currentRetry: number) => {
+    if (!enabled) {
+      setState({ data: [], loading: false, error: null });
+      return;
+    }
 
-        setState({
-          data: categories,
-          loading: false,
-          error: null,
-        });
-      } catch (error) {
+    try {
+      setState((prev) => ({ ...prev, loading: true, error: null }));
+      const response = await fetcher();
+      
+      let rawList: unknown[] = [];
+      if (Array.isArray(response)) {
+        rawList = response;
+      } else if (response && typeof response === 'object') {
+        const obj = response as Record<string, unknown>;
+        rawList = Array.isArray(obj.data) ? obj.data :
+                  Array.isArray(obj.categories) ? obj.categories :
+                  Array.isArray(obj.players) ? obj.players :
+                  Array.isArray(obj.matches) ? obj.matches :
+                  Array.isArray(obj.standings) ? obj.standings :
+                  Array.isArray(obj.scorers) ? obj.scorers :
+                  Array.isArray(obj.teams) ? obj.teams : [];
+      }
+
+      // Strict validation filtering: filter out corrupted items rather than masking via fallback || item (P3)
+      const validatedList = rawList
+        .map((item) => validateData(schema, item))
+        .filter((item): item is T => item !== null);
+
+      if (validatedList.length < rawList.length && process.env.NODE_ENV !== 'production') {
+        console.warn(`[Validation Notice]: ${rawList.length - validatedList.length} items failed validation against schema.`);
+      }
+
+      setState({
+        data: validatedList,
+        loading: false,
+        error: null,
+      });
+      setRetryCount(0); // Reset retry on success
+    } catch (err) {
+      const errorObj = err instanceof Error ? err : new Error('Unknown error during fetch');
+      
+      if (currentRetry < MAX_RETRIES) {
+        const backoffDelay = 1000 * Math.pow(2, currentRetry);
+        setTimeout(() => {
+          setRetryCount((prev) => prev + 1);
+        }, backoffDelay);
+      } else {
         setState({
           data: null,
           loading: false,
-          error: error as Error,
+          error: errorObj,
         });
       }
-    };
+    }
+  }, [enabled, ...dependencies]);
 
-    fetchCategories();
-  }, []);
+  useEffect(() => {
+    executeFetch(retryCount);
+  }, [retryCount, executeFetch]);
 
   return state;
-};
+}
+
+// ============================================
+// CATEGORÍAS
+// ============================================
+export const useCategories = (): UseDataState<Category[]> =>
+  useApi<Category>(() => apiClient.getCategories(), CategorySchema);
 
 // ============================================
 // JUGADORES DE UN EQUIPO
 // ============================================
-
-export const useTeamPlayers = (teamId: string | undefined) => {
-  const [state, setState] = useState<UseDataState<Player[]>>({
-    data: null,
-    loading: true,
-    error: null,
-  });
-
-  useEffect(() => {
-    if (!teamId) return;
-
-    const fetchPlayers = async () => {
-      try {
-        setState((prev) => ({ ...prev, loading: true }));
-        const response = await apiClient.getPlayers({ teamId });
-        const rawList = Array.isArray(response) ? response : [];
-        const players = rawList.map((player: any) =>
-          validateData(PlayerSchema, player) || player
-        ) as Player[];
-
-        setState({
-          data: players,
-          loading: false,
-          error: null,
-        });
-      } catch (error) {
-        setState({
-          data: null,
-          loading: false,
-          error: error as Error,
-        });
-      }
-    };
-
-    fetchPlayers();
-  }, [teamId]);
-
-  return state;
-};
+export const useTeamPlayers = (teamId: string | undefined): UseDataState<Player[]> =>
+  useApi<Player>(
+    () => (teamId ? apiClient.getPlayers({ teamId }) : Promise.resolve([])),
+    PlayerSchema,
+    [teamId],
+    Boolean(teamId)
+  );
 
 // ============================================
 // PARTIDOS DE UNA CATEGORÍA
 // ============================================
-
-export const useCategoryMatches = (categoryId: string | undefined) => {
-  const [state, setState] = useState<UseDataState<Match[]>>({
-    data: null,
-    loading: true,
-    error: null,
-  });
-
-  useEffect(() => {
-    if (!categoryId) return;
-
-    const fetchMatches = async () => {
-      try {
-        setState((prev) => ({ ...prev, loading: true }));
-        const response = await apiClient.getMatches({ categoryId });
-        const rawList = Array.isArray(response) ? response : [];
-        const matches = rawList.map((match: any) =>
-          validateData(MatchSchema, match) || match
-        ) as Match[];
-
-        setState({
-          data: matches,
-          loading: false,
-          error: null,
-        });
-      } catch (error) {
-        setState({
-          data: null,
-          loading: false,
-          error: error as Error,
-        });
-      }
-    };
-
-    fetchMatches();
-  }, [categoryId]);
-
-  return state;
-};
+export const useCategoryMatches = (categoryId: string | undefined): UseDataState<Match[]> =>
+  useApi<Match>(
+    () => (categoryId ? apiClient.getMatches({ categoryId }) : Promise.resolve([])),
+    MatchSchema,
+    [categoryId],
+    Boolean(categoryId)
+  );
 
 // ============================================
 // TABLA DE POSICIONES
 // ============================================
-
-export const useStandings = (categoryId: string | undefined) => {
-  const [state, setState] = useState<UseDataState<Standing[]>>({
-    data: null,
-    loading: true,
-    error: null,
-  });
-
-  useEffect(() => {
-    if (!categoryId) return;
-
-    const fetchStandings = async () => {
-      try {
-        setState((prev) => ({ ...prev, loading: true }));
-        const response = await apiClient.getStandings(categoryId);
-        const rawList = response?.standings || (Array.isArray(response) ? response : []);
-        const standings = rawList.map((standing: any) =>
-          validateData(StandingSchema, standing) || standing
-        ) as Standing[];
-
-        setState({
-          data: standings,
-          loading: false,
-          error: null,
-        });
-      } catch (error) {
-        setState({
-          data: null,
-          loading: false,
-          error: error as Error,
-        });
-      }
-    };
-
-    fetchStandings();
-  }, [categoryId]);
-
-  return state;
-};
+export const useStandings = (categoryId: string | undefined): UseDataState<Standing[]> =>
+  useApi<Standing>(
+    () => (categoryId ? apiClient.getStandings(categoryId) : Promise.resolve([])),
+    StandingSchema,
+    [categoryId],
+    Boolean(categoryId)
+  );
 
 // ============================================
 // GOLEADORES
 // ============================================
-
-export const useScorers = (categoryId: string | undefined, limit?: number) => {
-  const [state, setState] = useState<UseDataState<TopScorer[]>>({
-    data: null,
-    loading: true,
-    error: null,
-  });
-
-  useEffect(() => {
-    if (!categoryId) return;
-
-    const fetchScorers = async () => {
-      try {
-        setState((prev) => ({ ...prev, loading: true }));
-        const response = await apiClient.getScorers(categoryId, limit);
-        const rawList = response?.scorers || (Array.isArray(response) ? response : []);
-        const scorers = rawList.map((scorer: any) =>
-          validateData(TopScorerSchema, scorer) || scorer
-        ) as TopScorer[];
-
-        setState({
-          data: scorers,
-          loading: false,
-          error: null,
-        });
-      } catch (error) {
-        setState({
-          data: null,
-          loading: false,
-          error: error as Error,
-        });
-      }
-    };
-
-    fetchScorers();
-  }, [categoryId, limit]);
-
-  return state;
-};
+export const useScorers = (categoryId: string | undefined, limit?: number): UseDataState<TopScorer[]> =>
+  useApi<TopScorer>(
+    () => (categoryId ? apiClient.getScorers(categoryId, limit) : Promise.resolve([])),
+    TopScorerSchema,
+    [categoryId, limit],
+    Boolean(categoryId)
+  );

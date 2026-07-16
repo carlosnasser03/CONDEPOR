@@ -4,6 +4,7 @@ import { HeroSection } from '@/components/sports/HeroSection';
 import { CategoryCard } from '@/components/sports/CategoryCard';
 import { useCategories } from '@/lib/hooks';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { CategoryCardSkeleton } from '@/components/common/Skeleton';
 import { EmptyState } from '@/components/common/EmptyState';
 
 const ANIMATION_URL = process.env.NEXT_PUBLIC_HERO_ANIMATION_URL || '';
@@ -27,7 +28,13 @@ export default function Home() {
             y goleadores en tiempo real
           </p>
 
-          {loading && <LoadingSpinner />}
+          {loading && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <CategoryCardSkeleton key={i} />
+              ))}
+            </div>
+          )}
 
           {error && (
             <EmptyState

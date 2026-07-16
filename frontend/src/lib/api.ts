@@ -8,6 +8,77 @@
  * - Manejo centralizado y tipado de errores (`ApiError`, `NetworkError`, `TimeoutError`)
  */
 
+import { Category, Team, Player, Match, Standing, TopScorer as Scorer } from '@/types';
+
+// Specific API Response contracts
+export interface CategoriesListResponse {
+  success: boolean;
+  count?: number;
+  data?: Category[];
+  categories?: Category[];
+}
+
+export interface CategoryDetailResponse {
+  success: boolean;
+  category?: Category;
+  data?: Category;
+}
+
+export interface TeamsListResponse {
+  success: boolean;
+  count?: number;
+  data?: Team[];
+  teams?: Team[];
+}
+
+export interface TeamDetailResponse {
+  success: boolean;
+  team?: Team;
+  data?: Team;
+}
+
+export interface PlayersListResponse {
+  success: boolean;
+  count?: number;
+  data?: Player[];
+  players?: Player[];
+}
+
+export interface PlayerDetailResponse {
+  success: boolean;
+  player?: Player;
+  data?: Player;
+}
+
+export interface MatchesListResponse {
+  success: boolean;
+  count?: number;
+  data?: Match[];
+  matches?: Match[];
+}
+
+export interface MatchDetailResponse {
+  success: boolean;
+  match?: Match;
+  data?: Match;
+}
+
+export interface StandingsResponse {
+  success: boolean;
+  categoryId?: string;
+  count?: number;
+  standings?: Standing[];
+  data?: Standing[];
+}
+
+export interface ScorersResponse {
+  success: boolean;
+  categoryId?: string;
+  count?: number;
+  scorers?: Scorer[];
+  data?: Scorer[];
+}
+
 type ApiErrorResponse = {
   error?: string;
   message?: string;
@@ -150,17 +221,27 @@ class ApiClient {
   // CATEGORÍAS
   // ============================================
 
-  async getCategories() {
-    const res = await this.request<any>('/categories');
-    return res.data || res.categories || res || [];
+  async getCategories(): Promise<Category[]> {
+    const res = await this.request<CategoriesListResponse | Category[]>('/categories');
+    if (Array.isArray(res)) return res;
+    const list = res.data || res.categories;
+    if (!res.success || !Array.isArray(list)) {
+      throw new ApiError('Invalid categories API response contract', 500);
+    }
+    return list;
   }
 
-  async getCategory(id: string) {
-    const res = await this.request<any>(`/categories/${id}`);
-    return res.data || res.category || res;
+  async getCategory(id: string): Promise<Category | null> {
+    const res = await this.request<CategoryDetailResponse | Category>(`/categories/${id}`);
+    if ('id' in res && 'name' in res) return res as Category;
+    const item = (res as CategoryDetailResponse).data || (res as CategoryDetailResponse).category;
+    if (!(res as CategoryDetailResponse).success || !item) {
+      throw new ApiError(`Invalid category response for id: ${id}`, 404);
+    }
+    return item;
   }
 
-  async getCategoryById(id: string) {
+  async getCategoryById(id: string): Promise<Category | null> {
     return this.getCategory(id);
   }
 
@@ -168,20 +249,30 @@ class ApiClient {
   // EQUIPOS
   // ============================================
 
-  async getTeams(filters?: Record<string, string>) {
+  async getTeams(filters?: Record<string, string>): Promise<Team[]> {
     const query = filters ? new URLSearchParams(filters) : new URLSearchParams();
     const queryString = query.toString();
     const endpoint = queryString ? `/teams?${queryString}` : '/teams';
-    const res = await this.request<any>(endpoint);
-    return res.data || res.teams || res || [];
+    const res = await this.request<TeamsListResponse | Team[]>(endpoint);
+    if (Array.isArray(res)) return res;
+    const list = res.data || res.teams;
+    if (!res.success || !Array.isArray(list)) {
+      throw new ApiError('Invalid teams API response contract', 500);
+    }
+    return list;
   }
 
-  async getTeam(id: string) {
-    const res = await this.request<any>(`/teams/${id}`);
-    return res.data || res.team || res;
+  async getTeam(id: string): Promise<Team | null> {
+    const res = await this.request<TeamDetailResponse | Team>(`/teams/${id}`);
+    if ('id' in res && 'name' in res) return res as Team;
+    const item = (res as TeamDetailResponse).data || (res as TeamDetailResponse).team;
+    if (!(res as TeamDetailResponse).success || !item) {
+      throw new ApiError(`Invalid team response for id: ${id}`, 404);
+    }
+    return item;
   }
 
-  async getTeamById(id: string) {
+  async getTeamById(id: string): Promise<Team | null> {
     return this.getTeam(id);
   }
 
@@ -189,20 +280,30 @@ class ApiClient {
   // JUGADORES
   // ============================================
 
-  async getPlayers(filters?: Record<string, string>) {
+  async getPlayers(filters?: Record<string, string>): Promise<Player[]> {
     const query = filters ? new URLSearchParams(filters) : new URLSearchParams();
     const queryString = query.toString();
     const endpoint = queryString ? `/players?${queryString}` : '/players';
-    const res = await this.request<any>(endpoint);
-    return res.data || res.players || res || [];
+    const res = await this.request<PlayersListResponse | Player[]>(endpoint);
+    if (Array.isArray(res)) return res;
+    const list = res.data || res.players;
+    if (!res.success || !Array.isArray(list)) {
+      throw new ApiError('Invalid players API response contract', 500);
+    }
+    return list;
   }
 
-  async getPlayer(id: string) {
-    const res = await this.request<any>(`/players/${id}`);
-    return res.data || res.player || res;
+  async getPlayer(id: string): Promise<Player | null> {
+    const res = await this.request<PlayerDetailResponse | Player>(`/players/${id}`);
+    if ('id' in res && 'name' in res) return res as Player;
+    const item = (res as PlayerDetailResponse).data || (res as PlayerDetailResponse).player;
+    if (!(res as PlayerDetailResponse).success || !item) {
+      throw new ApiError(`Invalid player response for id: ${id}`, 404);
+    }
+    return item;
   }
 
-  async getPlayersByTeam(teamId: string) {
+  async getPlayersByTeam(teamId: string): Promise<Player[]> {
     return this.getPlayers({ teamId });
   }
 
@@ -210,20 +311,30 @@ class ApiClient {
   // PARTIDOS
   // ============================================
 
-  async getMatches(filters?: Record<string, string>) {
+  async getMatches(filters?: Record<string, string>): Promise<Match[]> {
     const query = filters ? new URLSearchParams(filters) : new URLSearchParams();
     const queryString = query.toString();
     const endpoint = queryString ? `/matches?${queryString}` : '/matches';
-    const res = await this.request<any>(endpoint);
-    return res.data || res.matches || res || [];
+    const res = await this.request<MatchesListResponse | Match[]>(endpoint);
+    if (Array.isArray(res)) return res;
+    const list = res.data || res.matches;
+    if (!res.success || !Array.isArray(list)) {
+      throw new ApiError('Invalid matches API response contract', 500);
+    }
+    return list;
   }
 
-  async getMatch(id: string) {
-    const res = await this.request<any>(`/matches/${id}`);
-    return res.data || res.match || res;
+  async getMatch(id: string): Promise<Match | null> {
+    const res = await this.request<MatchDetailResponse | Match>(`/matches/${id}`);
+    if ('id' in res && 'homeTeamId' in res) return res as Match;
+    const item = (res as MatchDetailResponse).data || (res as MatchDetailResponse).match;
+    if (!(res as MatchDetailResponse).success || !item) {
+      throw new ApiError(`Invalid match response for id: ${id}`, 404);
+    }
+    return item;
   }
 
-  async getMatchById(id: string) {
+  async getMatchById(id: string): Promise<Match | null> {
     return this.getMatch(id);
   }
 
@@ -231,8 +342,11 @@ class ApiClient {
   // STANDINGS
   // ============================================
 
-  async getStandings(categoryId: string) {
-    const res = await this.request<any>(`/standings/${categoryId}`);
+  async getStandings(categoryId: string): Promise<StandingsResponse> {
+    const res = await this.request<StandingsResponse>(`/standings/${categoryId}`);
+    if (!res || !res.success) {
+      throw new ApiError(`Invalid standings response for category: ${categoryId}`, 500);
+    }
     return res;
   }
 
@@ -240,18 +354,24 @@ class ApiClient {
   // GOLEADORES
   // ============================================
 
-  async getScorers(categoryId: string, limit?: number) {
+  async getScorers(categoryId: string, limit?: number): Promise<ScorersResponse> {
     const query = limit ? `?limit=${limit}` : '';
-    const res = await this.request<any>(`/scorers/${categoryId}/top${query}`);
+    const res = await this.request<ScorersResponse>(`/scorers/${categoryId}/top${query}`);
+    if (!res || !res.success) {
+      throw new ApiError(`Invalid scorers response for category: ${categoryId}`, 500);
+    }
     return res;
   }
 
-  async getTopScorers(categoryId: string, limit: number = 10) {
+  async getTopScorers(categoryId: string, limit: number = 10): Promise<ScorersResponse> {
     return this.getScorers(categoryId, limit);
   }
 
-  async getAllScorers(categoryId: string) {
-    const res = await this.request<any>(`/scorers/${categoryId}`);
+  async getAllScorers(categoryId: string): Promise<ScorersResponse> {
+    const res = await this.request<ScorersResponse>(`/scorers/${categoryId}`);
+    if (!res || !res.success) {
+      throw new ApiError(`Invalid all scorers response for category: ${categoryId}`, 500);
+    }
     return res;
   }
 

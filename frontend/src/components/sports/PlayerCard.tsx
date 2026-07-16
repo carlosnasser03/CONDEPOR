@@ -187,10 +187,10 @@ export const getTacticalData = (pos: string) => {
 export const PlayerCard: React.FC<PlayerCardProps> = ({ player, delay = 0 }) => {
   const [imgError, setImgError] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    setIsClient(true);
   }, []);
 
   const tactical = getTacticalData(player.position);
@@ -238,7 +238,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, delay = 0 }) => 
             <div className="relative w-full h-44 rounded-xl overflow-hidden mb-4 border border-slate-800/80 bg-gradient-to-b from-[#1e293b]/60 to-[#0b111e]">
               {hasValidPhoto ? (
                 <img
-                  src={player.photoUrl}
+                  src={player.photoUrl || undefined}
                   alt={player.name}
                   onError={() => setImgError(true)}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -322,7 +322,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, delay = 0 }) => 
       </motion.div>
 
       {/* MODAL DE BURBUJA FLOTANTE EN PORTAL (Desacoplado de la grilla para no mover ni desbordar elementos) */}
-      {mounted && typeof document !== 'undefined' && createPortal(
+      {isClient && createPortal(
         <AnimatePresence>
           {isModalOpen && (
             <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto">

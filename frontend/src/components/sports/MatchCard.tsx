@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Match } from '@/types';
 import { motion } from 'framer-motion';
 import { formatDate, formatTime } from '@/lib/utils';
@@ -9,6 +9,9 @@ interface MatchCardProps {
 }
 
 export const MatchCard: React.FC<MatchCardProps> = ({ match, delay = 0 }) => {
+  const [homeImgError, setHomeImgError] = useState(false);
+  const [awayImgError, setAwayImgError] = useState(false);
+
   const isFinished = match.status === 'finished';
   const isLive = match.status === 'in_progress';
 
@@ -76,18 +79,19 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, delay = 0 }) => {
                   LOCAL
                 </span>
               </div>
-              <div className="w-9 h-9 sm:w-10 sm:h-10 flex-shrink-0 flex items-center justify-center overflow-hidden" style={{ width: '38px', height: '38px', minWidth: '38px', maxWidth: '38px', minHeight: '38px', maxHeight: '38px' }}>
-                {match.homeTeam?.crestUrl ? (
+              <div className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 flex items-center justify-center overflow-hidden" style={{ width: '38px', height: '38px', minWidth: '38px', maxWidth: '38px', minHeight: '38px', maxHeight: '38px' }}>
+                {match.homeTeam?.crestUrl && !homeImgError ? (
                   <img
-                    src={match.homeTeam.crestUrl}
+                    src={match.homeTeam.crestUrl || undefined}
                     alt={match.homeTeam.name}
                     width={38}
                     height={38}
                     style={{ width: '38px', height: '38px', minWidth: '38px', maxWidth: '38px', minHeight: '38px', maxHeight: '38px', objectFit: 'contain' }}
-                    className="drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] flex-shrink-0 block"
+                    onError={() => setHomeImgError(true)}
+                    className="drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] shrink-0 block"
                   />
                 ) : (
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-800 flex items-center justify-center font-black text-amber-400 text-sm flex-shrink-0 border border-slate-700" style={{ width: '38px', height: '38px', minWidth: '38px', maxWidth: '38px', minHeight: '38px', maxHeight: '38px' }}>
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-800 flex items-center justify-center font-black text-amber-400 text-sm shrink-0 border border-slate-700" style={{ width: '38px', height: '38px', minWidth: '38px', maxWidth: '38px', minHeight: '38px', maxHeight: '38px' }}>
                     {homeCrest}
                   </div>
                 )}
@@ -122,18 +126,19 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match, delay = 0 }) => {
 
             {/* Equipo Visitante (Alineado a la izquierda hacia el centro) */}
             <div className="flex items-center justify-start gap-3.5 flex-1 min-w-0">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 flex-shrink-0 flex items-center justify-center overflow-hidden" style={{ width: '38px', height: '38px', minWidth: '38px', maxWidth: '38px', minHeight: '38px', maxHeight: '38px' }}>
-                {match.awayTeam?.crestUrl ? (
+              <div className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 flex items-center justify-center overflow-hidden" style={{ width: '38px', height: '38px', minWidth: '38px', maxWidth: '38px', minHeight: '38px', maxHeight: '38px' }}>
+                {match.awayTeam?.crestUrl && !awayImgError ? (
                   <img
-                    src={match.awayTeam.crestUrl}
+                    src={match.awayTeam.crestUrl || undefined}
                     alt={match.awayTeam.name}
                     width={38}
                     height={38}
                     style={{ width: '38px', height: '38px', minWidth: '38px', maxWidth: '38px', minHeight: '38px', maxHeight: '38px', objectFit: 'contain' }}
-                    className="drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] flex-shrink-0 block"
+                    onError={() => setAwayImgError(true)}
+                    className="drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] shrink-0 block"
                   />
                 ) : (
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-800 flex items-center justify-center font-black text-sky-400 text-sm flex-shrink-0 border border-slate-700" style={{ width: '38px', height: '38px', minWidth: '38px', maxWidth: '38px', minHeight: '38px', maxHeight: '38px' }}>
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-800 flex items-center justify-center font-black text-sky-400 text-sm shrink-0 border border-slate-700" style={{ width: '38px', height: '38px', minWidth: '38px', maxWidth: '38px', minHeight: '38px', maxHeight: '38px' }}>
                     {awayCrest}
                   </div>
                 )}
