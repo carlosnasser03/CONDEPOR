@@ -10,27 +10,27 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ standings }) => 
   const getPositionStyle = (position: number) => {
     if (position === 1) {
       return {
-        badge: 'bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-black shadow-md border border-amber-300',
+        textClass: 'text-amber-400 font-black text-lg sm:text-xl drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]',
         border: 'border-l-[5px] border-l-amber-500',
         label: 'Campeón / UCL',
       };
     }
     if (position <= 4) {
       return {
-        badge: 'bg-blue-600 text-white font-extrabold shadow-sm border border-blue-400/50',
-        border: 'border-l-[5px] border-l-blue-500',
+        textClass: 'text-sky-400 font-black text-base sm:text-lg',
+        border: 'border-l-[5px] border-l-sky-500',
         label: 'Zona Champions',
       };
     }
     if (position <= 6) {
       return {
-        badge: 'bg-emerald-600 text-white font-extrabold shadow-sm border border-emerald-400/50',
+        textClass: 'text-emerald-400 font-black text-base sm:text-lg',
         border: 'border-l-[5px] border-l-emerald-500',
         label: 'Zona Europa',
       };
     }
     return {
-      badge: 'bg-slate-800 text-slate-300 font-bold border border-slate-700',
+      textClass: 'text-slate-300 font-extrabold text-base sm:text-lg',
       border: 'border-l-[5px] border-l-transparent',
       label: '',
     };
@@ -48,34 +48,45 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ standings }) => 
               Clasificación Oficial • Primera División
             </h3>
             <p className="text-xs text-slate-400 font-semibold">
-              Ordenado por Puntos, Diferencia de Goles y Goles a Favor
+              Actualización en tiempo real conforme a actas arbitrales
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-4 text-xs font-extrabold text-slate-300 hidden sm:flex">
-          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50"></span> 1° Campeón</span>
-          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm shadow-blue-500/50"></span> 2°-4° Champions</span>
-          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50"></span> 5°-6° Europa</span>
+
+        {/* Leyenda rápida de cualificación */}
+        <div className="flex flex-wrap items-center gap-4 text-xs font-bold">
+          <span className="flex items-center gap-1.5 text-amber-400">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block shadow-sm shadow-amber-500/50" />
+            Campeón / UCL
+          </span>
+          <span className="flex items-center gap-1.5 text-sky-400">
+            <span className="w-2.5 h-2.5 rounded-full bg-sky-500 inline-block shadow-sm shadow-sky-500/50" />
+            Champions
+          </span>
+          <span className="flex items-center gap-1.5 text-emerald-400">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block shadow-sm shadow-emerald-500/50" />
+            Europa
+          </span>
         </div>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse" aria-describedby="standings-description">
           <thead>
-            <tr className="bg-[#111827] border-b-2 border-slate-800 text-slate-300 text-[11px] sm:text-xs font-black uppercase tracking-wider">
-              <th scope="col" className="py-4 pl-5 pr-3 w-14 text-center text-amber-400">POS</th>
-              <th scope="col" className="py-4 px-4 min-w-[220px] text-white">EQUIPO</th>
-              <th scope="col" className="py-4 px-3 text-center w-12 text-slate-200 font-black" title="Partidos Jugados">PJ</th>
-              <th scope="col" className="py-4 px-3 text-center w-12 text-emerald-400 font-black" title="Partidos Ganados">G</th>
-              <th scope="col" className="py-4 px-3 text-center w-12 text-amber-400 font-black" title="Partidos Empatados">E</th>
-              <th scope="col" className="py-4 px-3 text-center w-12 text-red-400 font-black" title="Partidos Perdidos">P</th>
-              <th scope="col" className="py-4 px-3 text-center w-12 text-slate-400 hidden md:table-cell" title="Goles a Favor">GF</th>
-              <th scope="col" className="py-4 px-3 text-center w-12 text-slate-400 hidden md:table-cell" title="Goles en Contra">GC</th>
-              <th scope="col" className="py-4 px-3 text-center w-16 text-slate-200 font-black" title="Diferencia de Goles">DIF</th>
-              <th scope="col" className="py-4 pl-3 pr-6 text-right w-24 sm:w-28 text-amber-400 font-black">PTS</th>
+            <tr className="bg-[#080d1a] border-b border-slate-800 text-[11px] font-black text-slate-400 uppercase tracking-wider">
+              <th scope="col" className="py-3.5 pl-5 pr-3 w-12 text-center">POS</th>
+              <th scope="col" className="py-3.5 px-4 min-w-[200px]">EQUIPO</th>
+              <th scope="col" className="py-3.5 px-3 text-center" title="Partidos Jugados">PJ</th>
+              <th scope="col" className="py-3.5 px-3 text-center text-emerald-400" title="Partidos Ganados">G</th>
+              <th scope="col" className="py-3.5 px-3 text-center text-amber-300" title="Partidos Empatados">E</th>
+              <th scope="col" className="py-3.5 px-3 text-center text-red-400" title="Partidos Perdidos">P</th>
+              <th scope="col" className="py-3.5 px-3 text-center hidden md:table-cell" title="Goles a Favor">GF</th>
+              <th scope="col" className="py-3.5 px-3 text-center hidden md:table-cell" title="Goles en Contra">GC</th>
+              <th scope="col" className="py-3.5 px-3 text-center" title="Diferencia de Goles">DIF</th>
+              <th scope="col" className="py-3.5 pl-3 pr-6 text-right text-amber-400" title="Puntos Totales">PTS</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/80 text-sm font-semibold">
+          <tbody className="divide-y divide-slate-800/80 font-medium text-sm">
             {standings.map((team) => {
               const style = getPositionStyle(team.position);
               const crestFallback = team.teamName ? team.teamName.substring(0, 3).toUpperCase() : 'EQU';
@@ -86,9 +97,9 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ standings }) => 
                   role="row"
                   className={`hover:bg-[#162033] transition-colors duration-150 bg-[#0b111e] ${style.border}`}
                 >
-                  {/* Posición con insignia de color */}
+                  {/* Posición (Sin encuadre interno, tipografía limpia y nítida) */}
                   <td className="py-3.5 pl-5 pr-3 text-center">
-                    <span className={`inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs ${style.badge}`}>
+                    <span className={`inline-block ${style.textClass}`}>
                       {team.position}
                     </span>
                   </td>
