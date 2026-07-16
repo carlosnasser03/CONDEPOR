@@ -168,18 +168,18 @@ export async function renderTeamDetailView(team: any): Promise<string> {
           </div>
 
           <div style="margin-bottom: 1.25rem;">
-            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase;">Posición Principal (Nomenclatura Estándar CONDEPOR) *</label>
-            <select id="playerPositionInput" required style="width: 100%; padding: 0.85rem 1rem; border-radius: 12px; background: #0b0f19; border: 1px solid var(--border); color: #fff; font-size: 0.95rem; font-weight: 600; outline: none;">
-              <option value="POR">POR - Portero / Guardameta</option>
-              <option value="DFC">DFC - Defensa Central</option>
-              <option value="LI">LI - Lateral Izquierdo</option>
-              <option value="LD">LD - Lateral Derecho</option>
-              <option value="MCD">MCD - Mediocentro Defensivo / Contención</option>
-              <option value="MC" selected>MC - Mediocentro Central / Mixto</option>
-              <option value="MCO">MCO - Mediocentro Ofensivo / Enganche</option>
-              <option value="EI">EI - Extremo Izquierdo</option>
-              <option value="ED">ED - Extremo Derecho</option>
-              <option value="DC">DC - Delantero Centro / Ariete</option>
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase;">Posición y Demarcación Táctica (Nomenclatura Oficial CONDEPOR) *</label>
+            <select id="playerPositionInput" required onchange="suggestJerseyNumber(this.value)" style="width: 100%; padding: 0.85rem 1rem; border-radius: 12px; background: #0b0f19; border: 1px solid var(--border); color: #fff; font-size: 0.95rem; font-weight: 600; outline: none;">
+              <option value="POR">POR - Portero / Guardameta (Dorsal típico: #1)</option>
+              <option value="DFC">DFC - Defensa Central (Dorsales típicos: #4, #5)</option>
+              <option value="LD">LD - Defensa Lateral Derecho (Dorsal típico: #2)</option>
+              <option value="LI">LI - Defensa Lateral Izquierdo (Dorsal típico: #3)</option>
+              <option value="MCD">MCD - Mediocampista Defensivo / Contención (Dorsal típico: #6)</option>
+              <option value="MC" selected>MC - Mediocampista Mixto / Todocampista (Dorsal típico: #8)</option>
+              <option value="MCO">MCO - Mediocampista Ofensivo / Mediapunta (Dorsal típico: #10)</option>
+              <option value="DC">DC - Delantero Centro / Ariete (Dorsal típico: #9)</option>
+              <option value="ED">ED - Extremo Derecho (Dorsal típico: #7)</option>
+              <option value="EI">EI - Extremo Izquierdo (Dorsal típico: #11)</option>
             </select>
           </div>
 
@@ -197,8 +197,22 @@ export async function renderTeamDetailView(team: any): Promise<string> {
     </div>
 
     <script>
+      function suggestJerseyNumber(pos) {
+        const input = document.getElementById('playerNumberInput');
+        if (!input) return;
+        const suggestions = {
+          'POR': 1, 'DFC': 4, 'LD': 2, 'LI': 3,
+          'MCD': 6, 'MC': 8, 'MCO': 10,
+          'DC': 9, 'ED': 7, 'EI': 11
+        };
+        if (suggestions[pos] && !input.value) {
+          input.value = suggestions[pos];
+        }
+      }
+
       function openAddPlayerModal() {
         document.getElementById('playerModal').style.display = 'flex';
+        suggestJerseyNumber(document.getElementById('playerPositionInput').value);
       }
 
       function closePlayerModal() {
