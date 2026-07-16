@@ -27,27 +27,31 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
         whileTap={{ scale: 0.96 }}
         transition={{ delay, type: 'spring', stiffness: 420, damping: 25 }}
       >
-        <Card hover className="text-center bg-[#0f172a]/95 border border-slate-800/85 hover:border-amber-500/60 shadow-lg rounded-2xl transition-colors">
+        <Card hover className="text-center group bg-[#0f172a]/95 border border-slate-800/85 hover:border-amber-500/60 shadow-lg rounded-2xl transition-all duration-300">
           {/* Color Indicator */}
           <div
-            className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-amber-500/10 border border-white/10 group-hover:scale-110 transition-transform"
+            className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center text-white font-bold text-2xl shadow-lg shadow-amber-500/10 border border-white/10 group-hover:scale-110 transition-transform duration-300"
             style={{ backgroundColor: color }}
           >
             🏆
           </div>
 
           {/* Title */}
-          <h3 className="text-lg font-black text-white mb-2 tracking-tight">{name}</h3>
+          <h3 className="text-xl font-black text-white group-hover:text-amber-300 transition-colors duration-300 mb-2 tracking-tight leading-snug">
+            {name || 'Categoría Oficial'}
+          </h3>
 
           {/* Description */}
           {description && (
-            <p className="text-sm font-medium text-slate-400 line-clamp-2">{description}</p>
+            <p className="text-sm font-medium text-slate-300 line-clamp-2 leading-relaxed">
+              {description}
+            </p>
           )}
 
           {/* CTA */}
-          <div className="mt-4 inline-flex items-center gap-1 text-amber-400 font-bold text-xs tracking-wider uppercase">
+          <div className="mt-5 inline-flex items-center gap-1.5 text-amber-400 group-hover:text-amber-300 font-extrabold text-xs tracking-wider uppercase transition-colors duration-200">
             <span>Ver Categoría</span>
-            <span>→</span>
+            <span className="group-hover:translate-x-1 transition-transform duration-200">→</span>
           </div>
         </Card>
       </motion.div>

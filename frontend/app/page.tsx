@@ -17,14 +17,14 @@ export default function Home() {
       <HeroSection animationUrl={ANIMATION_URL} />
 
       {/* Categorías */}
-      <section id="categories" role="region" aria-label="Sección principal de Categorías" className="py-20 px-4 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl font-bold text-center text-gray-900 mb-4">
-            Categorías
+      <section id="categories" role="region" aria-label="Sección principal de Categorías" className="py-20 px-4 bg-[#0b111e] relative overflow-hidden">
+        <div className="max-w-7xl mx-auto relative z-10">
+          <h2 className="text-3xl sm:text-5xl font-black text-center text-white mb-4 tracking-tight drop-shadow-md">
+            Categorías Oficiales
           </h2>
-          <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
+          <p className="text-center text-slate-400 font-medium mb-12 max-w-2xl mx-auto text-sm sm:text-base">
             Selecciona una categoría para ver la tabla de posiciones, partidos
-            y goleadores
+            y goleadores en tiempo real
           </p>
 
           {loading && <LoadingSpinner />}
