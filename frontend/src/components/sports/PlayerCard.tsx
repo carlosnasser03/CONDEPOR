@@ -269,17 +269,32 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, delay = 0 }) => 
               </div>
             </div>
 
-            {/* Nombre y Rol Táctico */}
-            <div className="text-center mb-4">
+            {/* Nombre y Posición en Línea (A la par del nombre según requerimiento) */}
+            <div className="flex flex-wrap items-center justify-center gap-2 text-center mb-3">
               <h3 className="text-lg font-black text-white group-hover:text-amber-400 transition-colors duration-200 tracking-tight leading-snug">
-                {player.name}
+                {player.name || 'Sin Nombre'}
               </h3>
-              <p className="text-xs font-bold text-slate-400 mt-1 line-clamp-1">
-                {tactical.name}
-              </p>
-              <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-800/80 border border-slate-700/60 text-[10px] font-semibold text-amber-300/90 group-hover:bg-amber-500/20 group-hover:border-amber-500/40 transition-colors">
-                <span>📖 Ver Demarcación y Roles</span>
-              </div>
+              <span className={`text-[11px] font-black px-2.5 py-0.5 rounded-lg border tracking-wider uppercase shrink-0 shadow-sm ${getPositionStyle(player.position || '')}`}>
+                {player.position || 'JUG'}
+              </span>
+            </div>
+
+            {/* Botón táctil para Abrir Modal de Demarcaciones (Diseño mejorado de alta legibilidad) */}
+            <div className="mb-4">
+              <motion.button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsModalOpen(true);
+                }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.95 }}
+                className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider shadow-md shadow-amber-500/20 hover:shadow-amber-500/35 border border-amber-300/40 flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <span className="text-sm">📖</span>
+                <span>Ver Demarcación y Roles</span>
+              </motion.button>
             </div>
           </div>
 
@@ -307,11 +322,11 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, delay = 0 }) => 
         </motion.div>
       </motion.div>
 
-      {/* MODAL DE BURBUJA FLOTANTE EN PORTAL (Detachado de la grilla para no mover ni desbordar elementos) */}
-      {mounted && createPortal(
+      {/* MODAL DE BURBUJA FLOTANTE EN PORTAL (Desacoplado de la grilla para no mover ni desbordar elementos) */}
+      {mounted && typeof document !== 'undefined' && createPortal(
         <AnimatePresence>
           {isModalOpen && (
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-hidden">
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto">
               {/* Overlay oscuro con desenfoque */}
               <motion.div
                 initial={{ opacity: 0 }}
@@ -319,7 +334,7 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, delay = 0 }) => 
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
                 onClick={() => setIsModalOpen(false)}
-                className="absolute inset-0 bg-[#040711]/85 backdrop-blur-md cursor-pointer"
+                className="fixed inset-0 bg-[#040711]/85 backdrop-blur-md cursor-pointer"
               />
 
               {/* Contenido del Modal tipo Burbuja Flotante */}
@@ -328,7 +343,8 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, delay = 0 }) => 
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.65, y: 40 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 26 }}
-                className="relative z-10 w-full max-w-2xl bg-gradient-to-br from-[#101828] via-[#0f172a] to-[#080d1a] border border-amber-500/50 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto text-left"
+                onClick={(e) => e.stopPropagation()}
+                className="relative z-10 w-full max-w-2xl bg-gradient-to-br from-[#101828] via-[#0f172a] to-[#080d1a] border border-amber-500/50 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden my-auto text-left"
               >
                 {/* Resplandor superior */}
                 <div className="absolute -top-32 -right-32 w-64 h-64 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
@@ -343,8 +359,11 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, delay = 0 }) => 
                       <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-black uppercase tracking-wider mb-1">
                         <span>Demarcación Oficial CONDEPOR</span>
                       </div>
-                      <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                        {player.name}
+                      <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex flex-wrap items-center gap-2">
+                        <span>{player.name || 'Sin Nombre'}</span>
+                        <span className={`text-sm font-black px-2.5 py-0.5 rounded-lg border uppercase ${getPositionStyle(player.position || '')}`}>
+                          {player.position || 'JUG'}
+                        </span>
                       </h2>
                       <p className="text-slate-400 text-sm font-semibold mt-0.5">
                         {tactical.name} ({tactical.code}) &bull; Dorsal Típico: {tactical.commonNumbers}
