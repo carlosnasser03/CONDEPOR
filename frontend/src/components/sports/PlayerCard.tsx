@@ -250,13 +250,11 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({ player, delay = 0 }) => 
                     #{player.jerseyNumber || '0'}
                   </span>
                   
-                  {/* Ícono atlético limpio e indicación clara del dorsal sin iniciales repetidas */}
-                  <div className="relative z-10 flex flex-col items-center justify-center">
-                    <div className="w-14 h-14 rounded-2xl bg-[#1e293b]/90 border border-slate-700/80 flex items-center justify-center shadow-md mb-2 group-hover:scale-110 group-hover:border-amber-500/50 transition-all duration-300">
-                      <span className="text-3xl select-none">👕</span>
-                    </div>
-                    <span className="text-xs font-black text-amber-400 tracking-widest uppercase bg-slate-900/80 px-3 py-1 rounded-full border border-slate-800 shadow-sm">
-                      Dorsal #{player.jerseyNumber || '0'}
+                  {/* Ícono atlético limpio e indicación clara del dorsal sin recuadros ni bordes molestos */}
+                  <div className="relative z-10 flex flex-col items-center justify-center gap-2">
+                    <span className="text-4xl select-none drop-shadow-md group-hover:scale-110 transition-transform duration-300">👕</span>
+                    <span className="text-xs font-black text-amber-400 tracking-widest uppercase drop-shadow-sm">
+                      DORSAL #{player.jerseyNumber || '0'}
                     </span>
                   </div>
                 </div>
