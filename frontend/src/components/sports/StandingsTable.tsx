@@ -14,27 +14,23 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ standings }) => 
       return {
         textClass: 'text-amber-400 font-black text-lg sm:text-xl drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]',
         border: 'border-l-[5px] border-l-amber-500',
-        label: 'Campeón / UCL',
       };
     }
     if (position <= 4) {
       return {
         textClass: 'text-sky-400 font-black text-base sm:text-lg',
         border: 'border-l-[5px] border-l-sky-500',
-        label: 'Zona Champions',
       };
     }
     if (position <= 6) {
       return {
         textClass: 'text-emerald-400 font-black text-base sm:text-lg',
         border: 'border-l-[5px] border-l-emerald-500',
-        label: 'Zona Europa',
       };
     }
     return {
       textClass: 'text-slate-300 font-extrabold text-base sm:text-lg',
       border: 'border-l-[5px] border-l-transparent',
-      label: '',
     };
   };
 
@@ -53,22 +49,6 @@ export const StandingsTable: React.FC<StandingsTableProps> = ({ standings }) => 
               Actualización en tiempo real conforme a actas arbitrales
             </p>
           </div>
-        </div>
-
-        {/* Leyenda rápida de cualificación */}
-        <div className="flex flex-wrap items-center gap-4 text-xs font-bold">
-          <span className="flex items-center gap-1.5 text-amber-400">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block shadow-sm shadow-amber-500/50" />
-            Campeón / UCL
-          </span>
-          <span className="flex items-center gap-1.5 text-sky-400">
-            <span className="w-2.5 h-2.5 rounded-full bg-sky-500 inline-block shadow-sm shadow-sky-500/50" />
-            Champions
-          </span>
-          <span className="flex items-center gap-1.5 text-emerald-400">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block shadow-sm shadow-emerald-500/50" />
-            Europa
-          </span>
         </div>
       </div>
 

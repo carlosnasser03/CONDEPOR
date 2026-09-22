@@ -1,11 +1,12 @@
 /**
  * SEED DATA COMPLETO OFICIAL - CONDEPOR (DeporteHN)
- * 
+ *
  * Crea:
- * - 6 Categorías Oficiales (U-8, U-10, U-12, U-14, U-16, U-18)
- * - 8 Equipos por categoría (48 Equipos totales)
- * - 15 Jugadores exactos por equipo (720 Jugadores totales con posiciones y dorsales)
- * - Partidos y Estadísticas de juego en cada categoría
+ * - 4 Categorías Principales (U-10, U-12, U-14, U-16)
+ * - 8 Equipos por categoría (32 Equipos totales)
+ * - 15 Jugadores exactos por equipo (480 Jugadores totales con posiciones y dorsales)
+ * - 10-12 Partidos por categoría con estados variados (scheduled, in_progress, finished)
+ * - Estadísticas completas de jugadores y goleadores
  */
 
 import { PrismaClient } from "@prisma/client";
@@ -13,12 +14,10 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 const CATEGORIES_DATA = [
-  { name: "Fútbol Infantil U-8", color: "#3b82f6", description: "Torneo Pre-Infantil Menores de 8 años" },
   { name: "Fútbol Infantil U-10", color: "#10b981", description: "Torneo Infantil Menor Menores de 10 años" },
   { name: "Fútbol Infantil U-12", color: "#f59e0b", description: "Torneo Infantil Mayor Menores de 12 años" },
   { name: "Fútbol Juvenil U-14", color: "#8b5cf6", description: "Torneo Juvenil Menor Menores de 14 años" },
-  { name: "Fútbol Juvenil U-16", color: "#ec4899", description: "Torneo Juvenil Mayor Menores de 16 años" },
-  { name: "Fútbol Reservas U-18", color: "#ef4444", description: "Torneo Reservas Menores de 18 años" }
+  { name: "Fútbol Juvenil U-16", color: "#ec4899", description: "Torneo Juvenil Mayor Menores de 16 años" }
 ];
 
 const TEAMS_DATA = [
@@ -68,8 +67,63 @@ const ROSTER_POSITIONS = [
   { position: "EI", jerseyNumber: 11 }
 ];
 
+// Interface para match data
+interface MatchData {
+  homeTeam: number;
+  awayTeam: number;
+  homeGoals: number;
+  awayGoals: number;
+  status: "scheduled" | "in_progress" | "finished";
+  daysOffset: number;
+  venue: string;
+  goalScorers?: { team: "home" | "away"; playerIdx: number; goals: number }[];
+}
+
+// Definir partidos por categoría - 10-12 por categoría
+const MATCH_TEMPLATES: MatchData[] = [
+  // Jornada 1 - Pasados
+  { homeTeam: 0, awayTeam: 1, homeGoals: 3, awayGoals: 1, status: "finished", daysOffset: -9, venue: "Estadio Nacional CONDEPOR (Tegucigalpa)", goalScorers: [
+    { team: "home", playerIdx: 0, goals: 2 }, { team: "home", playerIdx: 1, goals: 1 }, { team: "away", playerIdx: 0, goals: 1 }
+  ]},
+  { homeTeam: 2, awayTeam: 3, homeGoals: 2, awayGoals: 2, status: "finished", daysOffset: -9, venue: "Estadio Olímpico CONDEPOR (San Pedro Sula)", goalScorers: [
+    { team: "home", playerIdx: 0, goals: 1 }, { team: "home", playerIdx: 1, goals: 1 }, { team: "away", playerIdx: 0, goals: 2 }
+  ]},
+
+  // Jornada 2 - Pasados
+  { homeTeam: 4, awayTeam: 5, homeGoals: 0, awayGoals: 2, status: "finished", daysOffset: -7, venue: "Estadio Emilio Williams (Choluteca)", goalScorers: [
+    { team: "away", playerIdx: 0, goals: 2 }
+  ]},
+  { homeTeam: 6, awayTeam: 7, homeGoals: 1, awayGoals: 0, status: "finished", daysOffset: -7, venue: "Estadio Municipal CONDEPOR", goalScorers: [
+    { team: "home", playerIdx: 0, goals: 1 }
+  ]},
+
+  // Jornada 3 - Pasados
+  { homeTeam: 1, awayTeam: 2, homeGoals: 4, awayGoals: 1, status: "finished", daysOffset: -5, venue: "Estadio Nacional CONDEPOR (Tegucigalpa)", goalScorers: [
+    { team: "home", playerIdx: 0, goals: 2 }, { team: "home", playerIdx: 1, goals: 1 }, { team: "home", playerIdx: 2, goals: 1 }, { team: "away", playerIdx: 0, goals: 1 }
+  ]},
+  { homeTeam: 3, awayTeam: 0, homeGoals: 1, awayGoals: 1, status: "finished", daysOffset: -5, venue: "Estadio Olímpico CONDEPOR (San Pedro Sula)", goalScorers: [
+    { team: "home", playerIdx: 0, goals: 1 }, { team: "away", playerIdx: 0, goals: 1 }
+  ]},
+
+  // Jornada 4 - Pasados/Recientes
+  { homeTeam: 5, awayTeam: 6, homeGoals: 2, awayGoals: 3, status: "finished", daysOffset: -3, venue: "Estadio Emilio Williams (Choluteca)", goalScorers: [
+    { team: "home", playerIdx: 0, goals: 2 }, { team: "away", playerIdx: 0, goals: 2 }, { team: "away", playerIdx: 1, goals: 1 }
+  ]},
+  { homeTeam: 7, awayTeam: 4, homeGoals: 0, awayGoals: 0, status: "finished", daysOffset: -3, venue: "Estadio Municipal CONDEPOR", goalScorers: []},
+
+  // Jornada 5 - HOY/RECIENTE (in_progress)
+  { homeTeam: 0, awayTeam: 3, homeGoals: 2, awayGoals: 1, status: "in_progress", daysOffset: -1, venue: "Estadio Nacional CONDEPOR (Tegucigalpa)", goalScorers: [
+    { team: "home", playerIdx: 0, goals: 1 }, { team: "home", playerIdx: 2, goals: 1 }, { team: "away", playerIdx: 0, goals: 1 }
+  ]},
+
+  // Próximos - Scheduled
+  { homeTeam: 1, awayTeam: 4, homeGoals: 0, awayGoals: 0, status: "scheduled", daysOffset: 2, venue: "Estadio Olímpico CONDEPOR (San Pedro Sula)", goalScorers: []},
+  { homeTeam: 2, awayTeam: 5, homeGoals: 0, awayGoals: 0, status: "scheduled", daysOffset: 3, venue: "Estadio Nacional CONDEPOR (Tegucigalpa)", goalScorers: []},
+  { homeTeam: 6, awayTeam: 0, homeGoals: 0, awayGoals: 0, status: "scheduled", daysOffset: 5, venue: "Estadio Emilio Williams (Choluteca)", goalScorers: []},
+];
+
 async function main() {
-  console.log("🌱 Starting Oficial CONDEPOR Full Seed...\n");
+  console.log("🌱 Starting CONDEPOR COMPREHENSIVE Full Seed...\n");
 
   try {
     console.log("🧹 Cleaning old database records...");
@@ -84,15 +138,18 @@ async function main() {
     let totalMatchesCreated = 0;
     let totalStatsCreated = 0;
 
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
     for (let c = 0; c < CATEGORIES_DATA.length; c++) {
       const catData = CATEGORIES_DATA[c];
       console.log(`\n📋 Creating Category [${c + 1}/${CATEGORIES_DATA.length}]: ${catData.name}...`);
-      
+
       const category = await prisma.category.create({
         data: catData
       });
 
-      const teamsInCat: { id: string }[] = [];
+      const teamsInCat: { id: string; name: string }[] = [];
       for (let t = 0; t < TEAMS_DATA.length; t++) {
         const teamData = TEAMS_DATA[t];
         const team = await prisma.team.create({
@@ -121,198 +178,93 @@ async function main() {
         totalPlayersCreated += playersToCreate.length;
       }
 
-      // Obtener todos los jugadores creados de la categoría para las estadísticas de partidos
+      // Obtener todos los jugadores creados de la categoría
       const playersInCat = await prisma.player.findMany({
         where: { categoryId: category.id }
       });
 
-      // Crear 4 partidos finalizados y 2 programados en esta categoría para que haya tablas vivas
-      const now = new Date();
-      
-      // Jornada 1: Olimpia (0) vs Motagua (1) | Real España (2) vs Marathón (3)
-      const match1 = await prisma.match.create({
-        data: {
-          categoryId: category.id,
-          homeTeamId: teamsInCat[0].id,
-          awayTeamId: teamsInCat[1].id,
-          date: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000),
-          venue: "Estadio Nacional CONDEPOR (Tegucigalpa)",
-          status: "finished",
-          homeGoals: 3,
-          awayGoals: 1
-        }
-      });
-      totalMatchesCreated++;
+      const isStriker = (p: any) => p.position === "DC" || p.position === "ED" || p.position === "EI" || p.position === "MCO";
 
-      const match2 = await prisma.match.create({
-        data: {
-          categoryId: category.id,
-          homeTeamId: teamsInCat[2].id,
-          awayTeamId: teamsInCat[3].id,
-          date: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
-          venue: "Estadio Olímpico CONDEPOR (San Pedro Sula)",
-          status: "finished",
-          homeGoals: 2,
-          awayGoals: 2
-        }
-      });
-      totalMatchesCreated++;
+      // Crear matches según templates
+      const matchIds: { [key: string]: string } = {};
 
-      // Jornada 2: Lobos (4) vs Victoria (5) | Vida (6) vs Génesis (7)
-      const match3 = await prisma.match.create({
-        data: {
-          categoryId: category.id,
-          homeTeamId: teamsInCat[4].id,
-          awayTeamId: teamsInCat[5].id,
-          date: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
-          venue: "Estadio Emilio Williams (Choluteca)",
-          status: "finished",
-          homeGoals: 0,
-          awayGoals: 2
-        }
-      });
-      totalMatchesCreated++;
+      for (let m = 0; m < MATCH_TEMPLATES.length; m++) {
+        const template = MATCH_TEMPLATES[m];
+        const matchDate = new Date(now.getTime() + template.daysOffset * 24 * 60 * 60 * 1000);
 
-      const match4 = await prisma.match.create({
-        data: {
-          categoryId: category.id,
-          homeTeamId: teamsInCat[6].id,
-          awayTeamId: teamsInCat[7].id,
-          date: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
-          venue: "Estadio Municipal CONDEPOR",
-          status: "finished",
-          homeGoals: 1,
-          awayGoals: 0
-        }
-      });
-      totalMatchesCreated++;
-
-      // Próximos partidos programados
-      await prisma.match.create({
-        data: {
-          categoryId: category.id,
-          homeTeamId: teamsInCat[0].id,
-          awayTeamId: teamsInCat[2].id,
-          date: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000),
-          venue: "Estadio Nacional CONDEPOR (Tegucigalpa)",
-          status: "scheduled"
-        }
-      });
-      totalMatchesCreated++;
-
-      await prisma.match.create({
-        data: {
-          categoryId: category.id,
-          homeTeamId: teamsInCat[1].id,
-          awayTeamId: teamsInCat[3].id,
-          date: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000),
-          venue: "Estadio Olímpico CONDEPOR (San Pedro Sula)",
-          status: "scheduled"
-        }
-      });
-      totalMatchesCreated++;
-
-      // Crear Stats de Jugadores en los partidos finalizados
-      // Match 1 (Olimpia 3 - 1 Motagua)
-      const isStriker = (p: any) => p.position === "DC" || p.position === "Delantero" || p.position === "ED" || p.position === "EI";
-      const olimpiaStrikers = playersInCat.filter(p => p.teamId === teamsInCat[0].id && isStriker(p));
-      const motaguaStrikers = playersInCat.filter(p => p.teamId === teamsInCat[1].id && isStriker(p));
-      
-      if (olimpiaStrikers.length > 0 && motaguaStrikers.length > 0) {
-        await prisma.playerMatchStat.create({
+        const match = await prisma.match.create({
           data: {
-            playerId: olimpiaStrikers[0].id,
-            matchId: match1.id,
-            goals: 2,
-            assists: 1,
-            minutesPlayed: 85,
-            cleanSheet: false,
-            points: 2 * 10 + 1 * 3 + (85 > 60 ? 2 : 1) // 25 pts
+            categoryId: category.id,
+            homeTeamId: teamsInCat[template.homeTeam].id,
+            awayTeamId: teamsInCat[template.awayTeam].id,
+            date: matchDate,
+            venue: template.venue,
+            status: template.status,
+            homeGoals: template.status === "scheduled" ? null : template.homeGoals,
+            awayGoals: template.status === "scheduled" ? null : template.awayGoals
           }
         });
-        await prisma.playerMatchStat.create({
-          data: {
-            playerId: olimpiaStrikers[1].id,
-            matchId: match1.id,
-            goals: 1,
-            assists: 1,
-            minutesPlayed: 90,
-            cleanSheet: false,
-            points: 1 * 10 + 1 * 3 + 2 // 15 pts
-          }
-        });
-        await prisma.playerMatchStat.create({
-          data: {
-            playerId: motaguaStrikers[0].id,
-            matchId: match1.id,
-            goals: 1,
-            assists: 0,
-            minutesPlayed: 90,
-            cleanSheet: false,
-            points: 1 * 10 + 2 // 12 pts
-          }
-        });
-        totalStatsCreated += 3;
+        matchIds[m.toString()] = match.id;
+        totalMatchesCreated++;
 
-        // Actualizar acumulados de temporada
-        await prisma.player.update({
-          where: { id: olimpiaStrikers[0].id },
-          data: { seasonGoals: 2, seasonPoints: 25, seasonMatches: 1 }
-        });
-        await prisma.player.update({
-          where: { id: olimpiaStrikers[1].id },
-          data: { seasonGoals: 1, seasonPoints: 15, seasonMatches: 1 }
-        });
-        await prisma.player.update({
-          where: { id: motaguaStrikers[0].id },
-          data: { seasonGoals: 1, seasonPoints: 12, seasonMatches: 1 }
-        });
+        // Crear stats si el partido está finished o in_progress
+        if ((template.status === "finished" || template.status === "in_progress") && template.goalScorers && template.goalScorers.length > 0) {
+          const homeTeamPlayers = playersInCat.filter(p => p.teamId === teamsInCat[template.homeTeam].id);
+          const awayTeamPlayers = playersInCat.filter(p => p.teamId === teamsInCat[template.awayTeam].id);
+
+          for (const goalScorer of template.goalScorers) {
+            const team = goalScorer.team === "home" ? homeTeamPlayers : awayTeamPlayers;
+            const strikers = team.filter(isStriker);
+
+            if (strikers.length > goalScorer.playerIdx && strikers[goalScorer.playerIdx]) {
+              const player = strikers[goalScorer.playerIdx];
+              const points = goalScorer.goals * 10 + 2; // 10 pts per goal + 2 for playing
+
+              await prisma.playerMatchStat.create({
+                data: {
+                  playerId: player.id,
+                  matchId: match.id,
+                  goals: goalScorer.goals,
+                  assists: Math.floor(Math.random() * 2),
+                  minutesPlayed: Math.random() > 0.3 ? 90 : Math.random() > 0.5 ? 75 : 45,
+                  cleanSheet: false,
+                  points
+                }
+              });
+
+              // Update player stats
+              await prisma.player.update({
+                where: { id: player.id },
+                data: {
+                  seasonGoals: { increment: goalScorer.goals },
+                  seasonPoints: { increment: points },
+                  seasonMatches: { increment: 1 }
+                }
+              });
+
+              totalStatsCreated++;
+            }
+          }
+        }
       }
 
-      // Match 2 (Real España 2 - 2 Marathón)
-      const rceStrikers = playersInCat.filter(p => p.teamId === teamsInCat[2].id && isStriker(p));
-      const marStrikers = playersInCat.filter(p => p.teamId === teamsInCat[3].id && isStriker(p));
-      if (rceStrikers.length > 0 && marStrikers.length > 0) {
-        await prisma.playerMatchStat.create({
-          data: {
-            playerId: rceStrikers[0].id,
-            matchId: match2.id,
-            goals: 2,
-            assists: 0,
-            minutesPlayed: 90,
-            cleanSheet: false,
-            points: 22
-          }
-        });
-        await prisma.playerMatchStat.create({
-          data: {
-            playerId: marStrikers[0].id,
-            matchId: match2.id,
-            goals: 2,
-            assists: 0,
-            minutesPlayed: 90,
-            cleanSheet: false,
-            points: 22
-          }
-        });
-        totalStatsCreated += 2;
-        await prisma.player.update({
-          where: { id: rceStrikers[0].id },
-          data: { seasonGoals: 2, seasonPoints: 22, seasonMatches: 1 }
-        });
-        await prisma.player.update({
-          where: { id: marStrikers[0].id },
-          data: { seasonGoals: 2, seasonPoints: 22, seasonMatches: 1 }
-        });
-      }
+      console.log(`   ✅ Category ${catData.name} completed`);
+      console.log(`      • Teams: ${teamsInCat.length}`);
+      console.log(`      • Players: ${playersInCat.length}`);
+      console.log(`      • Matches: ${MATCH_TEMPLATES.length}`);
     }
 
-    console.log("\n✅ FULL CONDEPOR SEED COMPLETED SUCCESSFULLY!");
+    console.log("\n✅ COMPREHENSIVE CONDEPOR SEED COMPLETED SUCCESSFULLY!");
+    console.log(`\n📊 SUMMARY:`);
     console.log(`   🏆 Categorías creadas: ${CATEGORIES_DATA.length}`);
     console.log(`   ⚽ Equipos creados: ${totalTeamsCreated} (8 por categoría)`);
     console.log(`   👥 Jugadores creados: ${totalPlayersCreated} (15 exactos por equipo)`);
-    console.log(`   📅 Partidos generados: ${totalMatchesCreated}`);
+    console.log(`   📅 Partidos generados: ${totalMatchesCreated} (${MATCH_TEMPLATES.length} por categoría)`);
     console.log(`   📊 Estadísticas de partido: ${totalStatsCreated}`);
+    console.log(`\n   Estados de partidos:`);
+    console.log(`      • Finished (terminados): 8`);
+    console.log(`      • In Progress (en vivo): 1`);
+    console.log(`      • Scheduled (próximos): 3`);
 
   } catch (error) {
     console.error("❌ Error running seed:", error);

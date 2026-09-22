@@ -72,6 +72,7 @@ export interface TopScorer {
   position: number;
   playerId: string;
   playerName: string;
+  playerPhoto?: string | null;
   teamName: string;
   teamCrest: string | null;
   goals: number;

@@ -376,6 +376,40 @@ class ApiClient {
   }
 
   // ============================================
+  // LANDING PAGE
+  // ============================================
+
+  async getLandingCategories(): Promise<Category[]> {
+    const res = await this.request<CategoriesListResponse | Category[]>('/landing/categories-summary');
+    if (Array.isArray(res)) return res;
+    const list = res.data || res.categories;
+    if (!res.success || !Array.isArray(list)) {
+      throw new ApiError('Invalid landing categories API response contract', 500);
+    }
+    return list;
+  }
+
+  async getLandingMatches(categoryId: string): Promise<Match[]> {
+    const res = await this.request<MatchesListResponse | Match[]>(`/landing/matches/${categoryId}`);
+    if (Array.isArray(res)) return res;
+    const list = res.data || res.matches;
+    if (!res.success || !Array.isArray(list)) {
+      throw new ApiError(`Invalid landing matches response for category: ${categoryId}`, 500);
+    }
+    return list;
+  }
+
+  async getLandingScorers(categoryId: string, limit?: number): Promise<Scorer[]> {
+    const query = limit ? `?limit=${limit}` : '';
+    const res = await this.request<ScorersResponse>(`/landing/scorers/${categoryId}${query}`);
+    if (!res || !res.success) {
+      throw new ApiError(`Invalid landing scorers response for category: ${categoryId}`, 500);
+    }
+    const list = res.data || res.scorers || [];
+    return list;
+  }
+
+  // ============================================
   // HEALTH
   // ============================================
 

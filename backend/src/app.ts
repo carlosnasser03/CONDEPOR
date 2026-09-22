@@ -14,6 +14,7 @@ import scorerRoutes from "@infrastructure/http/routes/scorerRoutes";
 import teamRoutes from "@infrastructure/http/routes/teamRoutes";
 import categoryRoutes from "@infrastructure/http/routes/categoryRoutes";
 import playerRoutes from "@infrastructure/http/routes/playerRoutes";
+import landingRoutes from "@infrastructure/http/routes/landingRoutes";
 import { isBrowserRequest } from "@infrastructure/http/views/layout";
 import { renderHomeView } from "@infrastructure/http/views/homeView";
 import { renderHealthView } from "@infrastructure/http/views/healthView";
@@ -39,7 +40,10 @@ export function createApp(): Express {
         directives: {
           defaultSrc: ["'self'"],
           scriptSrc: ["'self'", "'unsafe-inline'"],
-          styleSrc: ["'self'", "'unsafe-inline'"],
+          scriptSrcAttr: ["'self'", "'unsafe-inline'", "'unsafe-hashes'"],
+          styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+          styleSrcElem: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+          fontSrc: ["'self'", "https://fonts.gstatic.com"],
           imgSrc: ["'self'", "data:", "https:"],
           connectSrc: [
             "'self'",
@@ -157,7 +161,25 @@ export function createApp(): Express {
   app.use("/api/scorers", scorerRoutes);
   app.use("/api/teams", teamRoutes);
   app.use("/api/categories", categoryRoutes);
+  app.use("/api/landing", landingRoutes);
   app.use("/api/players", playerRoutes);
+
+  // ==================
+  // ADMIN PANEL ROUTE
+  // ==================
+  app.get("/admin", async (req, res, next) => {
+    try {
+      const { renderAdminView } = require("@infrastructure/http/views/adminView");
+      const queryCatId = typeof req.query.categoryId === "string" ? req.query.categoryId : null;
+      const defaultCatId = process.env.DEFAULT_CATEGORY_ID || "cmrzd189t0000117f5y5rcphp";
+      const categoryId = queryCatId || defaultCatId;
+
+      const html = await renderAdminView(categoryId);
+      res.send(html);
+    } catch (error) {
+      next(error);
+    }
+  });
 
   // ==================
   // ROOT ROUTE (WELCOME DASHBOARD / API)

@@ -64,9 +64,14 @@ export async function renderTeamDetailView(team: any): Promise<string> {
           </span>
         </td>
         <td style="padding: 1.1rem 1.25rem; text-align: center;">
-          <button onclick="removePlayer('${team.id}', '${p.id}', '${p.name.replace(/'/g, "\\'")}')" title="Quitar de plantilla" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #f87171; border-radius: 8px; padding: 0.4rem 0.8rem; cursor: pointer; font-weight: 700; font-size: 0.8rem; transition: all 0.2s;">
-            🗑️ Quitar
-          </button>
+          <div style="display: flex; gap: 0.4rem; align-items: center;">
+            <button onclick="openEditPlayerModal('${p.id}', '${p.jerseyNumber}', '${p.name.replace(/'/g, "\\'")}',' ${p.position}')" title="Editar jugador" style="background: rgba(56, 189, 248, 0.15); border: 1px solid #38bdf8; color: #38bdf8; border-radius: 8px; padding: 0.4rem 0.8rem; cursor: pointer; font-weight: 700; font-size: 0.8rem; transition: all 0.2s;">
+              ✏️ Editar
+            </button>
+            <button onclick="removePlayer('${team.id}', '${p.id}', '${p.name.replace(/'/g, "\\'")}')" title="Quitar de plantilla" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #f87171; border-radius: 8px; padding: 0.4rem 0.8rem; cursor: pointer; font-weight: 700; font-size: 0.8rem; transition: all 0.2s;">
+              🗑️ Quitar
+            </button>
+          </div>
         </td>
       </tr>
     `;
@@ -138,6 +143,62 @@ export async function renderTeamDetailView(team: any): Promise<string> {
             `}
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- MODAL EDITAR JUGADOR -->
+    <div id="editPlayerModal" style="display: none; position: fixed; inset: 0; background: rgba(4, 7, 15, 0.85); backdrop-filter: blur(12px); z-index: 1000; align-items: center; justify-content: center; padding: 1.5rem;">
+      <div class="card" style="max-width: 520px; width: 100%; border-color: #38bdf8; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 1.8rem;">✏️</span>
+            <div>
+              <h3 style="font-size: 1.4rem; font-weight: 800; color: #fff; margin: 0;">Editar Atleta</h3>
+              <div style="font-size: 0.85rem; color: var(--text-muted);">Club: ${team.name}</div>
+            </div>
+          </div>
+          <button type="button" onclick="closeEditPlayerModal()" style="background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
+        </div>
+
+        <form id="editPlayerForm" onsubmit="submitEditPlayer(event)">
+          <input type="hidden" id="editPlayerId">
+          <input type="hidden" id="editTeamId" value="${team.id}">
+          <input type="hidden" id="editCategoryId" value="${categoryId}">
+
+          <div style="display: grid; grid-template-columns: 100px 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+            <div>
+              <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase;">Dorsal *</label>
+              <select id="editPlayerNumberInput" required style="width: 100%; padding: 0.85rem; border-radius: 12px; background: rgba(0,0,0,0.6); border: 1px solid var(--border); color: #fff; font-size: 1.1rem; font-weight: 800; text-align: center; outline: none;">
+                <option value="">Cargando dorsales disponibles...</option>
+              </select>
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase;">Nombre Completo del Atleta *</label>
+              <input type="text" id="editPlayerNameInput" required placeholder="Ej: Carlos Mejía" style="width: 100%; padding: 0.85rem 1rem; border-radius: 12px; background: rgba(0,0,0,0.6); border: 1px solid var(--border); color: #fff; font-size: 1rem; font-weight: 600; outline: none;">
+            </div>
+          </div>
+
+          <div style="margin-bottom: 1.75rem;">
+            <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase;">Posición y Demarcación Táctica *</label>
+            <select id="editPlayerPositionInput" required style="width: 100%; padding: 0.85rem 1rem; border-radius: 12px; background: #0b0f19; border: 1px solid var(--border); color: #fff; font-size: 0.95rem; font-weight: 600; outline: none;">
+              <option value="POR">POR - Portero / Guardameta</option>
+              <option value="DFC">DFC - Defensa Central</option>
+              <option value="LD">LD - Defensa Lateral Derecho</option>
+              <option value="LI">LI - Defensa Lateral Izquierdo</option>
+              <option value="MCD">MCD - Mediocampista Defensivo</option>
+              <option value="MC">MC - Mediocampista Mixto</option>
+              <option value="MCO">MCO - Mediocampista Ofensivo</option>
+              <option value="DC">DC - Delantero Centro</option>
+              <option value="ED">ED - Extremo Derecho</option>
+              <option value="EI">EI - Extremo Izquierdo</option>
+            </select>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+            <button type="button" onclick="closeEditPlayerModal()" class="btn btn-outline">Cancelar</button>
+            <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #38bdf8, #0284c7);">💾 Guardar Cambios &rarr;</button>
+          </div>
+        </form>
       </div>
     </div>
 
@@ -236,6 +297,68 @@ export async function renderTeamDetailView(team: any): Promise<string> {
             window.location.reload();
           } else {
             alert('Error al inscribir jugador: ' + (res.error || 'Desconocido'));
+          }
+        });
+      }
+
+      async function openEditPlayerModal(playerId, jerseyNumber, name, position) {
+        document.getElementById('editPlayerId').value = playerId;
+        document.getElementById('editPlayerNameInput').value = name;
+        document.getElementById('editPlayerPositionInput').value = position;
+        document.getElementById('editPlayerModal').style.display = 'flex';
+
+        // Cargar dorsales disponibles del equipo
+        const teamId = document.getElementById('editTeamId').value;
+        try {
+          const res = await fetch('/api/teams/' + teamId).then(r => r.json());
+          if (res.team && res.team.players) {
+            const usedNumbers = res.team.players.map(p => p.jerseyNumber);
+            const jerseySelect = document.getElementById('editPlayerNumberInput');
+            jerseySelect.innerHTML = '';
+
+            // Agregar opción para el dorsal actual
+            const currentOption = document.createElement('option');
+            currentOption.value = jerseyNumber;
+            currentOption.textContent = '#' + jerseyNumber + ' (Actual)';
+            currentOption.selected = true;
+            jerseySelect.appendChild(currentOption);
+
+            // Agregar opciones de dorsales disponibles (1-99)
+            for (let i = 1; i <= 99; i++) {
+              if (!usedNumbers.includes(i)) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = '#' + i;
+                jerseySelect.appendChild(option);
+              }
+            }
+          }
+        } catch(e) {
+          console.error('Error cargando dorsales disponibles:', e);
+        }
+      }
+
+      function closeEditPlayerModal() {
+        document.getElementById('editPlayerModal').style.display = 'none';
+      }
+
+      function submitEditPlayer(e) {
+        e.preventDefault();
+        const playerId = document.getElementById('editPlayerId').value;
+        const teamId = document.getElementById('editTeamId').value;
+        const jerseyNumber = parseInt(document.getElementById('editPlayerNumberInput').value);
+        const name = document.getElementById('editPlayerNameInput').value;
+        const position = document.getElementById('editPlayerPositionInput').value;
+
+        fetch('/api/teams/' + teamId + '/players/' + playerId, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jerseyNumber, name, position })
+        }).then(r => r.json()).then(res => {
+          if(res.success || res.id || res.name) {
+            window.location.reload();
+          } else {
+            alert('Error al guardar cambios: ' + (res.error || 'Desconocido'));
           }
         });
       }

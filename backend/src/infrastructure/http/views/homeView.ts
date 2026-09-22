@@ -94,6 +94,21 @@ export async function renderHomeView(categoryId: string, categoryName: string): 
           </div>
         </div>
       </a>
+
+      <a href="/admin?categoryId=${categoryId}" style="text-decoration: none; color: inherit;">
+        <div class="card" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between; border-color: rgba(168, 85, 247, 0.25); background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(15, 23, 42, 0.85));">
+          <div>
+            <div style="font-size: 2.6rem; margin-bottom: 1rem;">⚙️</div>
+            <h3 style="font-size: 1.45rem; font-weight: 800; margin-bottom: 0.5rem; color: #fff;">Panel de Administración</h3>
+            <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5;">
+              Crea partidos, registra resultados y agrega jugadores. Todo desde un panel centralizado y fácil de usar.
+            </p>
+          </div>
+          <div style="margin-top: 1.75rem; display: flex; align-items: center; gap: 0.5rem; color: #a855f7; font-weight: 700;">
+            Administrar &rarr;
+          </div>
+        </div>
+      </a>
     </div>
 
     <div class="card" style="background: rgba(16, 185, 129, 0.04); border-color: rgba(16, 185, 129, 0.25); padding: 1.8rem;">

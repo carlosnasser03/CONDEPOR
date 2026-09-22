@@ -91,7 +91,10 @@ model Player {
   
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
-  
+
+  // Restricciones de unicidad
+  @@unique([teamId, jerseyNumber]) // No se puede repetir dorsal en mismo equipo
+
   // Índices para queries frecuentes
   @@index([teamId])
   @@index([categoryId])

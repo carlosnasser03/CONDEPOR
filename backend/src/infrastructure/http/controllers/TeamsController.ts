@@ -120,6 +120,19 @@ export class TeamsController {
       throw new NotFoundError("Team not found");
     }
 
+    // Validar que el dorsal sea único en el equipo
+    const existingPlayer = await this.prisma.player.findUnique({
+      where: { teamId_jerseyNumber: { teamId: id, jerseyNumber: data.jerseyNumber } },
+    });
+
+    if (existingPlayer) {
+      res.status(400).json({
+        success: false,
+        error: `El dorsal #${data.jerseyNumber} ya está asignado a ${existingPlayer.name} en este equipo`,
+      });
+      return;
+    }
+
     const player = await this.prisma.player.create({
       data: {
         teamId: id,
@@ -172,6 +185,50 @@ export class TeamsController {
 
     await this.prisma.team.delete({ where: { id } });
     res.json({ success: true, message: "Team deleted successfully" });
+  }
+
+  /**
+   * PUT /api/teams/:id/players/:playerId
+   */
+  async updatePlayer(req: Request, res: Response): Promise<void> {
+    const { playerId } = req.params;
+    if (!playerId) {
+      throw new NotFoundError("Player ID required");
+    }
+
+    const existing = await this.prisma.player.findUnique({ where: { id: playerId } });
+    if (!existing) {
+      throw new NotFoundError("Player not found");
+    }
+
+    const { jerseyNumber, name, position } = req.body;
+    const parsedJerseyNumber = jerseyNumber ? parseInt(jerseyNumber) : null;
+
+    // Si se intenta cambiar el dorsal, validar que no exista otro jugador con ese dorsal en el mismo equipo
+    if (parsedJerseyNumber && parsedJerseyNumber !== existing.jerseyNumber) {
+      const conflictingPlayer = await this.prisma.player.findUnique({
+        where: { teamId_jerseyNumber: { teamId: existing.teamId, jerseyNumber: parsedJerseyNumber } },
+      });
+
+      if (conflictingPlayer) {
+        res.status(400).json({
+          success: false,
+          error: `El dorsal #${parsedJerseyNumber} ya está asignado a ${conflictingPlayer.name} en este equipo`,
+        });
+        return;
+      }
+    }
+
+    const player = await this.prisma.player.update({
+      where: { id: playerId },
+      data: {
+        ...(name && { name }),
+        ...(parsedJerseyNumber && { jerseyNumber: parsedJerseyNumber }),
+        ...(position && { position }),
+      },
+    });
+
+    res.json({ success: true, player });
   }
 
   /**

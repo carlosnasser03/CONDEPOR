@@ -153,3 +153,43 @@ export const useScorers = (categoryId: string | undefined, limit?: number): UseD
     [categoryId, limit],
     Boolean(categoryId)
   );
+
+// ============================================
+// LANDING PAGE HOOKS
+// ============================================
+
+/**
+ * useLandingCategories
+ * Hook para obtener categorías en la página de landing
+ * Retorna: {data: Category[], isLoading: boolean, error?: Error}
+ */
+export const useLandingCategories = (): UseDataState<Category[]> =>
+  useApi<Category>(() => apiClient.getLandingCategories(), CategorySchema);
+
+/**
+ * useLandingMatches
+ * Hook para obtener partidos de una categoría en landing
+ * Parámetro: categoryId (skip fetching si undefined)
+ * Retorna: {data: Match[], isLoading: boolean, error?: Error}
+ */
+export const useLandingMatches = (categoryId?: string): UseDataState<Match[]> =>
+  useApi<Match>(
+    () => (categoryId ? apiClient.getLandingMatches(categoryId) : Promise.resolve([])),
+    MatchSchema,
+    [categoryId],
+    Boolean(categoryId)
+  );
+
+/**
+ * useLandingScorers
+ * Hook para obtener goleadores de una categoría en landing
+ * Parámetro: categoryId, limit (default 10)
+ * Retorna: {data: TopScorer[], isLoading: boolean, error?: Error}
+ */
+export const useLandingScorers = (categoryId?: string, limit: number = 10): UseDataState<TopScorer[]> =>
+  useApi<TopScorer>(
+    () => (categoryId ? apiClient.getLandingScorers(categoryId, limit) : Promise.resolve([])),
+    TopScorerSchema,
+    [categoryId, limit],
+    Boolean(categoryId)
+  );
